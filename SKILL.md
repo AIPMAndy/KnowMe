@@ -1,0 +1,105 @@
+---
+name: knowme
+description: |
+  Analyze your personality through AI conversations. Infer MBTI type, cognitive patterns,
+  strengths/weaknesses, and provide actionable life advice based on chat history.
+  Activate when user mentions "MBTI", "personality analysis", "know me", "性格分析",
+  "了解自己", "性格优缺点", "KnowMe", or wants personality insights from their conversations.
+---
+
+# KnowMe - Know Yourself Through AI Conversations
+
+> Your conversations reveal who you are. KnowMe analyzes your AI chat patterns to uncover your MBTI type, personality traits, and growth opportunities.
+
+## How It Works
+
+KnowMe extracts behavioral signals from conversations:
+- **Communication style** → E/I (how you engage)
+- **Information processing** → S/N (concrete vs abstract)
+- **Decision-making** → T/F (logic vs values)
+- **Lifestyle approach** → J/P (structured vs flexible)
+
+## Quick Start
+
+### 1. Collect Conversation Data
+
+Run the collector script to gather chat history:
+
+```bash
+python3 scripts/collect.py --source openclaw --output /tmp/knowme_data.json
+```
+
+Supported sources:
+- `openclaw` — Reads from OpenClaw session history (default)
+- `chatgpt` — Parses ChatGPT export JSON (`--file path/to/conversations.json`)
+- `claude` — Parses Claude export JSON (`--file path/to/claude_export.json`)
+- `text` — Raw text/markdown conversation files (`--file path/to/chats/`)
+
+### 2. Analyze Personality
+
+```bash
+python3 scripts/analyze.py --input /tmp/knowme_data.json --output /tmp/knowme_report.md
+```
+
+This produces a comprehensive personality report.
+
+### 3. Generate Advice
+
+```bash
+python3 scripts/advise.py --report /tmp/knowme_report.md --output /tmp/knowme_advice.md
+```
+
+Generates personalized, high-value advice across multiple life dimensions.
+
+## Analysis Dimensions
+
+### MBTI 4-Dimension Scoring
+
+Each dimension scored 0-100 with confidence level:
+
+| Dimension | Left Pole | Right Pole | Signals Used |
+|-----------|-----------|------------|--------------|
+| E/I | Extraversion | Introversion | Initiative, social references, energy patterns |
+| S/N | Sensing | Intuition | Detail level, abstraction, future vs present focus |
+| T/F | Thinking | Feeling | Logic usage, empathy signals, decision framing |
+| J/P | Judging | Perceiving | Planning language, flexibility, closure-seeking |
+
+### Extended Personality Profile
+
+- **Communication Style**: Assertive / Collaborative / Analytical / Expressive
+- **Cognitive Patterns**: How you process and structure information
+- **Emotional Tendencies**: Stress signals, enthusiasm markers, resilience indicators
+- **Decision Mode**: Intuitive rapid / Deliberate analytical / Values-driven / Data-driven
+- **Growth Orientation**: Fixed vs growth mindset signals
+
+### Advice Categories
+
+- 🎯 **Career**: Role fit, leadership style, collaboration tips
+- 💬 **Communication**: Blind spots, persuasion patterns, conflict style
+- 🧠 **Learning**: Optimal learning mode, knowledge gaps, growth areas
+- ❤️ **Relationships**: Attachment signals, empathy patterns, social energy
+- ⚡ **Productivity**: Work rhythm, procrastination patterns, energy management
+- 🌱 **Personal Growth**: Specific exercises based on personality type
+
+## For AI Agents (Integration Guide)
+
+When triggered as a skill, follow this workflow:
+
+1. Check if user has conversation data ready, or help them collect it
+2. Run `collect.py` with appropriate source
+3. Run `analyze.py` to generate the personality report
+4. Run `advise.py` to generate personalized advice
+5. Present results conversationally — don't just dump the report
+6. Offer to deep-dive into any specific dimension
+
+### Interpretation Guidelines
+
+See `references/mbti_signals.md` for the complete signal taxonomy used in analysis.
+See `references/advice_frameworks.md` for the advice generation frameworks.
+
+## Limitations
+
+- Analysis quality scales with conversation volume (recommend 50+ messages)
+- MBTI is a preference model, not a fixed label — present results as tendencies
+- Cultural context affects expression — the same trait may surface differently
+- This is self-discovery, not clinical diagnosis
