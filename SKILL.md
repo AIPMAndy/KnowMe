@@ -81,6 +81,102 @@ Each dimension scored 0-100 with confidence level:
 - ⚡ **Productivity**: Work rhythm, procrastination patterns, energy management
 - 🌱 **Personal Growth**: Specific exercises based on personality type
 
+## 🎨 New: Generative Personalization (v2.0)
+
+**KnowMe now creates visual content from your personality profile!**
+
+### Universal Image Generation — From MBTI to Portrait in 10 seconds
+
+Works with **any** image generation service: PonyFlash, Bailian, Midjourney, DALL-E, Stable Diffusion, etc.
+
+```python
+# Generate optimized prompt from MBTI
+from knowme.generative import PortraitGenerator
+
+generator = PortraitGenerator()
+prompt = generator.generate_prompt(mbti="INTJ", style="professional")
+
+# Use with any image API:
+# - Bailian: bailian.images.generate(prompt=prompt)
+# - Midjourney: /imagine prompt
+# - DALL-E: openai.images.generate(prompt=prompt)
+# - Stable Diffusion: pipe(prompt)
+```
+
+**What happens:**
+1. KnowMe extracts your MBTI type from conversation analysis
+2. Maps to visual traits (expression, attire, colors, mood)
+3. Generates optimized prompt for any image generation service
+4. Returns ready-to-use prompt + optional direct API integration
+
+### Visual Traits by MBTI Type
+
+| Type | Expression | Attire | Colors | Mood |
+|------|-----------|--------|--------|------|
+| **INTJ** | Analytical, strategic | Minimalist dark blazer | Deep blues, silvers | Intellectual authority |
+| **ENTP** | Mischievous, energetic | Creative professional | Vibrant purples | Innovation, debate |
+| **ENFP** | Enthusiastic, bright | Colorful, expressive | Rainbow accents | Boundless energy |
+| **ISFJ** | Gentle, caring | Modest, comfortable | Soft greens, beiges | Quiet dedication |
+
+### Supported Image Services
+
+| Service | Integration | Example |
+|---------|-------------|---------|
+| **Bailian** | `bailian.images.generate()` | 阿里云百炼 |
+| **Midjourney** | Prompt export | Discord bot |
+| **DALL-E** | `openai.images.generate()` | OpenAI API |
+| **Stable Diffusion** | Local/remote inference | ComfyUI, etc. |
+| **PonyFlash** | `ponyflash.images.generate()` | 统一创意API |
+
+### Use Cases
+- 🎭 **Personal Avatars** — Profile pictures matching your MBTI
+- 🎨 **Content Creation** — Personality-aligned visuals for social media  
+- 📝 **AI Assistants** — Generate your AI分身 (like 圆圆 the cat!)
+- 🎯 **Brand Identity** — Visual assets reflecting authentic self
+
+### Example Workflow
+
+```bash
+# 1. Analyze personality
+python3 scripts/analyze.py --input data.json --output report.md
+
+# 2. Generate personalized portrait (prompt only)
+python3 scripts/generate_portrait.py --report report.md --output portrait.png
+
+# 3. [NEW] Direct PonyFlash integration - generate image immediately
+python3 scripts/generate_with_ponyflash.py --report report.md --style professional --output my_portrait.png
+
+# 4. Or specify MBTI directly
+python3 scripts/generate_with_ponyflash.py --mbti INTJ --style anime --output intj_avatar.png
+
+# 5. Create personality-based content prompts
+python3 scripts/generate_prompts.py --report report.md --output prompts.json
+```
+
+### Supported Styles
+
+| Style | Description | Best For |
+|-------|-------------|----------|
+| `professional` | Corporate portrait, business photography | LinkedIn, professional profiles |
+| `anime` | Manga aesthetic, vibrant colors | Social media, avatars |
+| `realistic` | Photorealistic, DSLR quality | Authentic portraits |
+| `artistic` | Painterly, creative composition | Personal branding |
+| `minimalist` | Clean, modern, simple | Design-focused profiles |
+
+### Quick Demo
+
+```python
+from knowme.generative import generate_portrait
+
+# One-liner: MBTI → Portrait
+portrait = generate_portrait(
+    mbti="INTJ",
+    style="professional",
+    output="my_portrait.png"
+)
+# Returns: {"url": "...", "mbti": "INTJ", "style": "professional"}
+```
+
 ## For AI Agents (Integration Guide)
 
 When triggered as a skill, follow this workflow:
@@ -89,13 +185,15 @@ When triggered as a skill, follow this workflow:
 2. Run `collect.py` with appropriate source
 3. Run `analyze.py` to generate the personality report
 4. Run `advise.py` to generate personalized advice
-5. Present results conversationally — don't just dump the report
-6. Offer to deep-dive into any specific dimension
+5. **[NEW]** Offer generative personalization (portraits, content, prompts)
+6. Present results conversationally — don't just dump the report
+7. Offer to deep-dive into any specific dimension
 
 ### Interpretation Guidelines
 
 See `references/mbti_signals.md` for the complete signal taxonomy used in analysis.
 See `references/advice_frameworks.md` for the advice generation frameworks.
+See `references/generative_workflows.md` for personalization examples.
 
 ## Limitations
 
