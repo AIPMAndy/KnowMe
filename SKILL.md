@@ -87,7 +87,7 @@ Each dimension scored 0-100 with confidence level:
 
 ### Universal Image Generation — From MBTI to Portrait in 10 seconds
 
-Works with **any** image generation service: PonyFlash, Bailian, Midjourney, DALL-E, Stable Diffusion, etc.
+Works with **any** image generation service: Bailian, Midjourney, DALL-E, Stable Diffusion, PonyFlash, etc.
 
 ```python
 # Generate optimized prompt from MBTI
@@ -143,11 +143,11 @@ python3 scripts/analyze.py --input data.json --output report.md
 # 2. Generate personalized portrait (prompt only)
 python3 scripts/generate_portrait.py --report report.md --output portrait.png
 
-# 3. [NEW] Direct PonyFlash integration - generate image immediately
-python3 scripts/generate_with_ponyflash.py --report report.md --style professional --output my_portrait.png
+# 3. [NEW] Direct image generation (optional adapters available)
+python3 scripts/generate_image.py --report report.md --service bailian --output my_portrait.png
 
 # 4. Or specify MBTI directly
-python3 scripts/generate_with_ponyflash.py --mbti INTJ --style anime --output intj_avatar.png
+python3 scripts/generate_image.py --mbti INTJ --style anime --output intj_avatar.png
 
 # 5. Create personality-based content prompts
 python3 scripts/generate_prompts.py --report report.md --output prompts.json

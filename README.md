@@ -91,6 +91,23 @@ $ knowme --integrate dna-memory
 - 潜在优势识别
 - 成长建议提供
 
+### 🎨 生成式个性化 (NEW v2.0)
+
+**从性格到视觉 —— 生成你的专属形象**
+
+- **MBTI → 图像 Prompt** —— 自动将性格特征转化为视觉描述
+- **多风格支持** —— professional/anime/realistic/artistic/minimalist
+- **多平台兼容** —— Bailian, Midjourney, DALL-E, Stable Diffusion 等
+- **AI分身生成** —— 为你的AI助手创建匹配性格的形象
+
+```bash
+# 生成个性化肖像
+python3 scripts/generate_portrait.py --mbti INTJ --style professional
+
+# 直接生成图像 (支持 Bailian/PonyFlash 等)
+python3 scripts/generate_image.py --mbti INTJ --service bailian --output portrait.png
+```
+
 ---
 
 ## 📁 项目结构
