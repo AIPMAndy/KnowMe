@@ -249,7 +249,7 @@ KnowMe 是自我探索工具，不是临床评估。MBTI 是偏好模型 —— 
 
 ## 📄 License
 
-[MIT](LICENSE) — 随意使用、Fork、改进、分享。
+[Apache 2.0](LICENSE) — 随意使用、Fork、改进、分享。
 
 ---
 
