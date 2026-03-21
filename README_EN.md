@@ -205,7 +205,7 @@ knowme/
 ├── assets/                           # Demo images and media
 ├── SKILL.md                          # OpenClaw Skill definition
 ├── CONTRIBUTING.md                   # Contributing guide
-└── LICENSE                           # MIT License
+└── LICENSE                           # Apache 2.0 License
 ```
 
 ---
@@ -248,7 +248,7 @@ KnowMe is a self-discovery tool, not a clinical assessment. MBTI is a preference
 
 ## 📄 License
 
-[MIT](LICENSE) — Use it, fork it, improve it, share it.
+[Apache 2.0](LICENSE) — Use it, fork it, improve it, share it.
 
 ---
 
