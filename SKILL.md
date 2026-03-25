@@ -3,6 +3,10 @@ name: knowme
 description: |
   Analyze your personality through AI conversations. Infer MBTI type, cognitive patterns,
   strengths/weaknesses, and provide actionable life advice based on chat history.
+  
+  **OpenClaw Auto-Integration:** When running as an OpenClaw skill, automatically detects
+  session history, requests authorization if needed, and performs analysis without manual steps.
+  
   Activate when user mentions "MBTI", "personality analysis", "know me", "性格分析",
   "了解自己", "性格优缺点", "KnowMe", or wants personality insights from their conversations.
 ---
@@ -21,16 +25,27 @@ KnowMe extracts behavioral signals from conversations:
 
 ## Quick Start
 
-### 1. Collect Conversation Data
+### 1. Auto-Detect & Request Authorization (Recommended)
 
-Run the collector script to gather chat history:
+**When running as an OpenClaw skill**, KnowMe automatically:
+
+1. **Detects OpenClaw environment** — Checks if running in an OpenClaw session
+2. **Locates session data** — Finds `~/.openclaw/agents/<agentId>/sessions/*.jsonl`
+3. **Requests authorization** — Sends OAuth card for user to approve access
+4. **Auto-collects on approval** — Immediately reads and analyzes conversation history
+
+**No manual steps needed** — just say "分析我的性格" or "KnowMe".
+
+### 2. Manual Collection (Fallback)
+
+If auto-detection fails or you prefer manual export:
 
 ```bash
 python3 scripts/collect.py --source openclaw --output /tmp/knowme_data.json
 ```
 
 Supported sources:
-- `openclaw` — Reads from OpenClaw session history (default)
+- `openclaw` — Reads from OpenClaw session history (default, auto-authorized)
 - `chatgpt` — Parses ChatGPT export JSON (`--file path/to/conversations.json`)
 - `claude` — Parses Claude export JSON (`--file path/to/claude_export.json`)
 - `text` — Raw text/markdown conversation files (`--file path/to/chats/`)
@@ -181,13 +196,130 @@ portrait = generate_portrait(
 
 When triggered as a skill, follow this workflow:
 
-1. Check if user has conversation data ready, or help them collect it
-2. Run `collect.py` with appropriate source
-3. Run `analyze.py` to generate the personality report
-4. Run `advise.py` to generate personalized advice
-5. **[NEW]** Offer generative personalization (portraits, content, prompts)
-6. Present results conversationally — don't just dump the report
-7. Offer to deep-dive into any specific dimension
+### Auto-Authorization Flow (OpenClaw Integration)
+
+```python
+# 1. Detect OpenClaw environment
+import os
+from pathlib import Path
+
+def detect_openclaw_sessions():
+    """Auto-detect OpenClaw session files"""
+    home = Path.home()
+    agents_dir = home / ".openclaw" / "agents"
+    
+    if not agents_dir.exists():
+        return None
+    
+    # Find all session files
+    sessions = []
+    for agent_dir in agents_dir.iterdir():
+        sessions_dir = agent_dir / "sessions"
+        if sessions_dir.exists():
+            for jsonl_file in sessions_dir.glob("*.jsonl"):
+                if not jsonl_file.name.endswith(('.bak', '.reset', '.deleted')):
+                    sessions.append(jsonl_file)
+    
+    return sessions
+
+# 2. Check if we have access
+has_access = check_session_access()  # Try to read a test file
+
+if not has_access:
+    # 3. Request authorization
+    send_authorization_card(
+        title="KnowMe 申请访问您的对话历史",
+        description="需要访问 OpenClaw 会话数据以进行性格分析",
+        scopes=["openclaw:session:read"],
+        on_approve="auto_collect_and_analyze"
+    )
+    return "已发送授权请求，请批准后我将自动分析您的对话历史"
+
+# 4. Auto-collect and analyze
+data = auto_collect_sessions()
+report = analyze_personality(data)
+advice = generate_advice(report)
+portrait_prompt = generate_portrait_prompt(report.mbti)
+```
+
+### Complete Workflow
+
+1. **Auto-detect** — Check for OpenClaw session files
+2. **Check access** — Try to read, if fail → request auth
+3. **Request authorization** — Send OAuth card (one-click approve)
+4. **Auto-collect** — On approval, immediately read all session files
+5. **Analyze** — Run personality analysis
+6. **Generate advice** — Create personalized recommendations  
+7. **Generate portrait** — Create MBTI-based visual prompt
+8. **Present results** — Conversational summary (not raw dump)
+9. **Offer deep-dive** — Let user explore specific dimensions
+
+### Authorization Scope
+
+```json
+{
+  "scope": "knowme:openclaw:read",
+  "access": [
+    "~/.openclaw/agents/*/sessions/*.jsonl",
+    "~/.openclaw/workspace/memory/*.md",
+    "~/.openclaw/workspace/MEMORY.md"
+  ],
+  "purpose": "Personality analysis and self-discovery",
+  "retention": "Analysis only, no external storage"
+}
+```
+
+### OpenClaw Tool Integration
+
+When triggered in OpenClaw, use these tool calls:
+
+```python
+# 1. Auto-detect and collect
+result = auto_collect_sessions()
+
+if result["status"] == "needs_auth":
+    # Send authorization card
+    feishu_im_user_message(
+        action="send",
+        msg_type="interactive",
+        content=build_auth_card(
+            title="KnowMe 申请访问对话历史",
+            description=f"需要访问 {result['session_count']} 个会话文件进行性格分析",
+            scope="knowme:openclaw:read",
+            callback="knowme.handle_auth"
+        )
+    )
+    return "已发送授权申请，请点击卡片授权后自动完成分析"
+
+elif result["status"] == "success":
+    # Proceed with analysis
+    report = analyze_personality(result["messages"])
+    advice = generate_advice(report)
+    
+    # Save to workspace
+    write(
+        file_path="~/.openclaw/workspace/knowme_report.md",
+        content=report.to_markdown()
+    )
+    
+    return report.summary()
+```
+
+### One-Command Analysis
+
+For OpenClaw users, the entire flow is:
+
+```
+User: "分析我的性格"
+AI: 
+  1. Detects OpenClaw environment ✓
+  2. Finds session files ✓
+  3. [If no access] Sends auth card
+  4. [On approval] Auto-collects & analyzes
+  5. Returns MBTI report + advice
+```
+
+**Total user effort: 1 message + 1 click (if auth needed)**
 
 ### Interpretation Guidelines
 
