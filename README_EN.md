@@ -2,36 +2,101 @@
 
 English | [中文](./README.md)
 
-> **Understand yourself and read other people through real conversations.**
+## When your manager says “think it through again,” what do they actually need from you?
 
-KnowMe extracts behavioral signals from ChatGPT, Claude, OpenClaw, Feishu, and speaker-labeled chat text. It can analyze your own long-term AI conversations or one selected person in a conversation with a manager, colleague, partner, friend, or customer.
+> **Not another MBTI quiz. KnowMe turns real Feishu conversations into an evidence-based communication guide.**
+
+Select a manager, colleague, or customer. KnowMe analyzes only the messages they wrote, identifies how they take in information and make decisions, and suggests **how to approach the next update, question, or request.**
 
 [![Star](https://img.shields.io/github/stars/AIPMAndy/KnowMe?style=social)](https://github.com/AIPMAndy/KnowMe/stargazers)
 [![License](https://img.shields.io/github/license/AIPMAndy/KnowMe)](https://github.com/AIPMAndy/KnowMe)
 [![Python](https://img.shields.io/badge/Python-3.8+-blue)](https://www.python.org/)
-[![Feishu](https://img.shields.io/badge/Feishu-direct%20chat%20import-3370ff)](https://www.feishu.cn/)
+[![Feishu](https://img.shields.io/badge/Feishu-group%20%2F%20DM-3370ff)](https://www.feishu.cn/)
 
-![KnowMe report example](assets/demo-output.png)
+**Understand people through what they actually said, not what a quiz says about them.**
 
-## Two analysis modes
+## Communication is hard when you do not know the other person's rules
 
-| Mode | What is analyzed | Common use |
+- Does “looks fine” mean approval, or are you expected to keep moving on your own?
+- Is a detail-oriented colleague being difficult, or gathering enough information to decide?
+- Is a quiet customer uninterested, or still waiting for evidence that lowers the risk?
+- You know everyone's MBTI label, but still do not know how to write the next Feishu message.
+
+Self-reported tests measure what people believe they would do. Real conversations capture how they already ask questions, evaluate information, push work forward, and make decisions. KnowMe does not read minds or claim to reveal hidden intent. It turns observable patterns into a **practical hypothesis for the next conversation**.
+
+## What KnowMe changes
+
+| Common approach | What goes wrong | KnowMe's approach |
 |---|---|---|
-| **Know yourself** | Your actual questions, decisions, and expression in AI chats | Self-awareness, career direction, growth advice |
-| **Understand others** | Only the selected participant's messages | Communicating with a manager, colleague, partner, friend, or customer |
+| Guess what the other person means | Emotion is easily mistaken for evidence | Analyze patterns in their real Feishu messages |
+| Send an entire chat to a generic AI | Both speakers get mixed into one profile | Preserve speakers and select exactly one subject |
+| Get an “ESTJ” label | No evidence and no way to judge confidence | Show dimensions, confidence, and source excerpts |
+| Learn a type but not what to say | Insight never becomes action | Give relationship-specific communication guidance |
+| Upload sensitive conversations | Privacy boundaries are unclear | Run analysis locally without an external AI API |
 
-Traditional personality tests ask what people believe they would do. KnowMe looks at what they already do in ordinary conversations: how they structure information, ask for outcomes, balance facts and people, and seek closure or flexibility.
+KnowMe has two modes:
 
-## Direct Feishu conversation integration
+| Mode | Subject | Output |
+|---|---|---|
+| **Understand others** | One selected participant in a Feishu or text conversation | Communication style, behavioral MBTI tendency, evidence, confidence, and next-step guidance |
+| **Know yourself** | Your long-term ChatGPT, Claude, or OpenClaw conversations | Questioning, decision, and expression patterns with growth advice |
 
-KnowMe can read a Feishu group or direct-message conversation through an authenticated `lark-cli` user identity. Speaker names are preserved, and only the selected person is analyzed.
+## Feishu is the core workplace workflow, not a checkbox
 
-### Analyze a manager or colleague
+Through an authorized [`lark-cli`](https://github.com/larksuite/cli) connection, KnowMe can collect a Feishu group chat or direct message that you are allowed to access. It also accepts Feishu JSON and copied text. Speaker identity is preserved throughout, and only the selected person's messages enter the analysis.
+
+```mermaid
+flowchart LR
+    A[Feishu group / DM] --> B[Preserve every speaker]
+    B --> C[Select manager / colleague / customer]
+    C --> D[Extract behavioral signals]
+    D --> E[Generate evidence and confidence]
+    E --> F[Suggest the next communication]
+```
+
+A result can look like this:
+
+```text
+Subject: Morgan Chen
+Analysis mode: other
+Relationship: manager
+Sample: 64 subject messages / 137 total messages
+
+Observed MBTI tendency: ESTJ
+Communication guidance:
+- Lead with the conclusion, then provide data and process
+- Name the owner, deadline, and definition of done
+- Pair a problem with the specific decision you need
+
+Evidence excerpts: only messages written by Morgan
+```
+
+The personality label is not the destination. **Fewer misunderstandings and less rework in the next conversation are what matter.**
+
+## Analyze a Feishu conversation in three minutes
+
+### 1. Install KnowMe and the Feishu CLI
 
 ```bash
-# Find a group chat_id by name
-lark-cli im +chat-search --as user --query "Project group" --format json
+git clone https://github.com/AIPMAndy/KnowMe.git
+cd KnowMe
 
+npm install -g @larksuite/cli
+lark-cli auth login --domain im
+lark-cli whoami
+```
+
+The KnowMe analyzer requires only Python 3.8+ and its standard library. Direct Feishu collection additionally requires `lark-cli`; importing exported JSON or copied text does not.
+
+### 2. Find a Feishu group
+
+```bash
+lark-cli im +chat-search --as user --query "Project group" --format json
+```
+
+### 3. Select one person to analyze
+
+```bash
 python3 scripts/collect.py \
   --source feishu \
   --chat-id oc_xxx \
@@ -42,12 +107,14 @@ python3 scripts/collect.py \
   --start 2026-07-01 \
   --output data.json
 
-python3 scripts/analyze.py --input data.json --output report.md
+python3 scripts/analyze.py \
+  --input data.json \
+  --output report.md
 ```
 
-For a direct message, replace `--chat-id oc_xxx` with `--user-id ou_xxx`.
+For a direct message, replace `--chat-id oc_xxx` with the other person's Feishu `--user-id ou_xxx`.
 
-### Analyze an exported or copied Feishu chat
+### No API access? Import copied text
 
 ```bash
 python3 scripts/collect.py \
@@ -58,21 +125,15 @@ python3 scripts/collect.py \
   --self-name "Andy" \
   --relationship colleague \
   --output data.json
+
+python3 scripts/analyze.py --input data.json --output report.md
 ```
 
-Accepted Feishu inputs:
+Accepted inputs include raw `lark-cli` JSON, a `messages` array with sender fields, copied Feishu `Name Time` blocks, and `Name: message` text.
 
-- raw JSON from `lark-cli im +chat-messages-list --format json`;
-- JSON containing a `messages` array and sender fields;
-- copied `Name HH:MM` message blocks;
-- speaker-labeled text such as `Morgan: Send the data and conclusion first.`
-
-## Analyze your own AI conversations
+## Know yourself through AI conversations
 
 ```bash
-git clone https://github.com/AIPMAndy/KnowMe.git
-cd KnowMe
-
 python3 scripts/collect.py \
   --source chatgpt \
   --file ~/Downloads/conversations.json \
@@ -83,53 +144,55 @@ python3 scripts/analyze.py --input data.json --output report.md
 python3 scripts/advise.py --report report.md --output advice.md
 ```
 
-Example Skill requests:
+Claude exports and OpenClaw workspaces are also supported. As an Agent Skill, you can ask:
 
-- "Analyze my personality from my AI conversations."
-- "Use this Feishu chat to understand my manager's communication style."
-- "Analyze only the other person's messages in this conversation."
-- "How should I report progress to this manager?"
+- “Analyze my Feishu conversation with my manager, using only their messages.”
+- “How does this colleague prefer to receive information?”
+- “Based on this conversation, how should I frame my next update?”
+- “Analyze my personality from my AI conversations.”
+
+<details>
+<summary>View a self-analysis terminal report</summary>
+
+![KnowMe self-analysis report](assets/demo-output.png)
+
+</details>
 
 ## What the report contains
 
-- selected subject and `self` or `other` mode;
+- the selected subject and `self` / `other` mode;
 - source, relationship context, subject sample size, and total messages;
 - E/I, S/N, T/F, and J/P tendencies with confidence;
-- short evidence excerpts from the selected person's own messages;
-- communication style and topic distribution;
-- practical guidance for the next interaction in `other` mode;
-- limitations and prohibited high-impact uses.
+- short evidence excerpts only from the selected person's messages;
+- communication style, topic distribution, and relationship-specific guidance;
+- sample limitations, appropriate boundaries, and prohibited high-impact uses.
+
+More messages across more days and topics generally produce a more stable profile:
+
+- fewer than 20 subject messages: low confidence;
+- 20-49 messages: directional only;
+- 50+ messages across multiple days and topics: preferred.
 
 ## Supported sources
 
 | Source | Collection method | Subject |
 |---|---|---|
-| **Feishu group/DM** | `--source feishu --chat-id/--user-id` | Selected participant |
-| **Feishu export/text** | `--source feishu --file` | Selected participant |
+| **Feishu group / DM** | `--source feishu --chat-id/--user-id` | Selected participant |
+| **Feishu JSON / copied text** | `--source feishu --file` | Selected participant |
 | **ChatGPT** | `--source chatgpt --file conversations.json` | Self |
 | **Claude** | `--source claude --file export.json` | Self |
 | **OpenClaw** | `--source openclaw` | Self |
-| **Text** | `--source text --file` | Self in AI conversations |
+| **Plain text** | `--source text --file` | Self in AI conversations |
 
-## How it works
+## Privacy and limits
 
-```text
-conversation data
-  -> preserve speakers
-  -> select one subject
-  -> scan bilingual behavioral signals
-  -> score four MBTI dimensions
-  -> calibrate confidence by sample size
-  -> produce evidence and communication guidance
-```
-
-The analyzer does not call an external AI API. Analysis runs locally. Direct Feishu collection uses the user's authorized `lark-cli` connection, then processes the retrieved messages on the local machine.
-
-Recommended sample sizes:
-
-- fewer than 20 authored messages: low confidence;
-- 20-49 messages: directional only;
-- 50 or more messages across multiple days and topics: preferred.
+- Analyze only conversations you are authorized to access, with participant consent where appropriate.
+- Raw chats stay local by default; the analyzer does not call an external AI API.
+- During direct collection, only the authorized `lark-cli` connection accesses Feishu.
+- Analysis of another person is a text-based communication hypothesis, not a psychological or clinical diagnosis.
+- Do not infer protected traits, mental health, honesty, or hidden intent.
+- Do not use the output to manipulate, exclude, hire, fire, or make another high-impact decision.
+- Verify important conclusions through direct communication.
 
 ## Project structure
 
@@ -152,33 +215,24 @@ KnowMe/
 
 ## Validation
 
-KnowMe uses only the Python standard library:
-
 ```bash
 python3 -m unittest discover -s tests -v
-python3 -m compileall -q scripts
+python3 -m compileall -q scripts tests
 ```
-
-## Privacy and limits
-
-- Analyze only conversations the user is authorized to access.
-- Raw chats stay local by default.
-- Analysis of another person is a communication hypothesis, not a clinical diagnosis.
-- Do not infer protected traits, mental health, honesty, or hidden intent.
-- Do not use the output to manipulate, exclude, hire, fire, or make another high-impact decision.
-- Verify important conclusions through direct communication.
 
 ## Roadmap
 
 - [x] ChatGPT / Claude / OpenClaw self-analysis
 - [x] Direct Feishu group and DM collection
 - [x] Feishu JSON and copied-text import
-- [x] One-person targeting without mixing speakers
-- [x] Workplace relationship context and communication guidance
-- [x] Sample-size confidence calibration
+- [x] One-person targeting without mixed speakers
+- [x] Workplace context and actionable communication guidance
+- [x] Evidence excerpts and sample-size confidence
 - [ ] Web UI
 - [ ] WeChat conversation parser
 - [ ] Big Five and timeline analysis
+
+If KnowMe saves you one round of guessing or rework, [give it a Star](https://github.com/AIPMAndy/KnowMe) so more people can find it.
 
 ## License
 
