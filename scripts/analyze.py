@@ -2,8 +2,8 @@
 """
 KnowMe - Personality Analyzer
 
-Analyzes collected conversation data to infer MBTI type and personality traits.
-Uses signal-based scoring from the MBTI signal taxonomy.
+Analyzes one selected speaker from collected conversations. Supports both
+self-discovery and directional analysis of another person's communication style.
 
 Input: JSON from collect.py
 Output: Markdown personality report
@@ -27,6 +27,7 @@ class SignalDetector:
         self.signals = defaultdict(list)
         self.scores = {"E": 0, "I": 0, "S": 0, "N": 0, "T": 0, "F": 0, "J": 0, "P": 0}
         self.evidence = defaultdict(list)
+        self.current_excerpt = ""
         self.stats = {
             "avg_message_length": 0,
             "total_messages": 0,
@@ -39,14 +40,15 @@ class SignalDetector:
             "languages": Counter(),
         }
 
-    def analyze_message(self, content, role="user"):
+    def analyze_message(self, content, role="subject"):
         """Analyze a single message for personality signals."""
-        if role != "user":
+        if role not in ("subject", "user", "context"):
             return
 
         self.stats["total_messages"] += 1
         content_lower = content.lower()
         content_stripped = content.strip()
+        self.current_excerpt = re.sub(r"\s+", " ", content_stripped)[:180]
 
         # ─── Basic stats ───
         msg_len = len(content_stripped)
@@ -170,7 +172,10 @@ class SignalDetector:
 
     def _score(self, dimension, points, evidence):
         self.scores[dimension] += points
-        self.evidence[dimension].append(evidence)
+        self.evidence[dimension].append({
+            "signal": evidence,
+            "excerpt": self.current_excerpt,
+        })
 
     def get_results(self):
         """Calculate final MBTI scores and profile."""
@@ -181,6 +186,23 @@ class SignalDetector:
         self.stats["emoji_rate"] = self.stats["emoji_rate"] / n
         self.stats["first_person_rate"] = self.stats["first_person_rate"] / n
         self.stats["we_rate"] = self.stats["we_rate"] / n
+
+        def unique_evidence(items):
+            unique = []
+            seen = set()
+            for item in items:
+                key = (item["signal"], item["excerpt"])
+                if key not in seen:
+                    seen.add(key)
+                    unique.append(item)
+            return unique[:5]
+
+        def sample_adjusted_confidence(confidence):
+            if n < 20:
+                return "low"
+            if n < 50 and confidence == "high":
+                return "medium"
+            return confidence
 
         # Calculate dimension percentages
         dimensions = {}
@@ -199,12 +221,13 @@ class SignalDetector:
                 winner = left if left_pct >= 50 else right
                 diff = abs(left_pct - 50)
                 confidence = "high" if diff > 30 else ("medium" if diff > 15 else "low")
+                confidence = sample_adjusted_confidence(confidence)
                 dimensions[f"{left}/{right}"] = {
                     "left": left, "right": right,
                     "left_score": left_pct, "right_score": right_pct,
                     "result": winner, "confidence": confidence,
-                    "evidence_left": list(set(self.evidence[left]))[:5],
-                    "evidence_right": list(set(self.evidence[right]))[:5],
+                    "evidence_left": unique_evidence(self.evidence[left]),
+                    "evidence_right": unique_evidence(self.evidence[right]),
                 }
 
         # Determine MBTI type
@@ -258,14 +281,49 @@ def analyze_communication_style(stats):
     return styles if styles else ["Balanced — no dominant communication style detected"]
 
 
+def build_interaction_guidance(results, relationship="other"):
+    """Create directional communication suggestions for the observed person."""
+    relationship_openers = {
+        "boss": "With a manager, lead with the outcome, constraints, and a clear decision request.",
+        "colleague": "With a colleague, make ownership and the next handoff explicit.",
+        "partner": "With a partner, separate emotional acknowledgment from problem-solving.",
+        "friend": "With a friend, preserve curiosity and avoid turning the conversation into a diagnosis.",
+        "customer": "With a customer, confirm their priority and definition of success before proposing a solution.",
+        "other": "Use these patterns as hypotheses and verify them in the next real conversation.",
+    }
+    guidance = [relationship_openers.get(relationship, relationship_openers["other"])]
+    winners = {key: value["result"] for key, value in results["dimensions"].items()}
+    guidance_by_result = {
+        "E": "Discuss ideas interactively and leave room for them to think out loud.",
+        "I": "Share context in advance and allow processing time before asking for a decision.",
+        "S": "Use concrete examples, current facts, and specific next steps.",
+        "N": "Start with the big picture and intended direction before moving into details.",
+        "T": "Make the logic, evidence, and trade-offs explicit; do not rely on emotional pressure.",
+        "F": "Acknowledge people impact and values before debating the solution.",
+        "J": "Clarify deadlines, ownership, and what counts as complete.",
+        "P": "Offer options and checkpoints instead of forcing premature closure.",
+    }
+    for dimension in ("E/I", "S/N", "T/F", "J/P"):
+        result = winners.get(dimension)
+        if result in guidance_by_result:
+            guidance.append(guidance_by_result[result])
+    return guidance
+
+
 # ─── Report Generation ───
 
-def generate_report(results, output_path):
+def generate_report(results, output_path, context=None):
     """Generate a Markdown personality report."""
+    context = context or {}
     mbti = results["mbti_type"]
     dims = results["dimensions"]
     stats = results["stats"]
     confidence = results["overall_confidence"]
+    mode = context.get("mode", "self")
+    subject = str(context.get("target") or ("you" if mode == "self" else "selected speaker")).replace("\n", " ")
+    relationship = context.get("relationship") or "other"
+    source = context.get("source", "unknown")
+    total_conversation_messages = context.get("total_conversation_messages", stats["total_messages"])
 
     comm_styles = analyze_communication_style(stats)
 
@@ -280,15 +338,21 @@ def generate_report(results, output_path):
         winner = f"**{d['result']}**"
         return f"{d['left']} [{bar}] {d['right']}  ({left_pct}% / {right_pct}%) → {winner} ({d['confidence']})"
 
-    report = f"""# 🧬 KnowMe Personality Report
+    mbti_heading = f"Your MBTI Type: **{mbti}**" if mode == "self" else f"Observed MBTI Tendency for {subject}: **{mbti}**"
+    relationship_line = f"> Relationship context: **{relationship}**\n" if mode == "other" else ""
+
+    report = f"""# 🧬 KnowMe Personality Report: {subject}
 
 > Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")}
-> Based on {stats['total_messages']} user messages
-> Overall confidence: **{confidence}**
+> Analyzed subject: **{subject}**
+> Analysis mode: **{mode}**
+> Source: **{source}**
+> Based on {stats['total_messages']} messages from the subject ({total_conversation_messages} total conversation messages)
+{relationship_line}> Overall confidence: **{confidence}**
 
 ---
 
-## 🎯 Your MBTI Type: **{mbti}**
+## 🎯 {mbti_heading}
 
 ### Dimensional Scores
 
@@ -306,9 +370,13 @@ def generate_report(results, output_path):
     for dim_key, d in dims.items():
         report += f"**{dim_key}**\n"
         if d["evidence_left"]:
-            report += f"- {d['left']} signals: {', '.join(d['evidence_left'][:3])}\n"
+            report += f"- {d['left']} signals:\n"
+            for item in d["evidence_left"][:3]:
+                report += f"  - {item['signal']}: \"{item['excerpt']}\"\n"
         if d["evidence_right"]:
-            report += f"- {d['right']} signals: {', '.join(d['evidence_right'][:3])}\n"
+            report += f"- {d['right']} signals:\n"
+            for item in d["evidence_right"][:3]:
+                report += f"  - {item['signal']}: \"{item['excerpt']}\"\n"
         report += "\n"
 
     report += f"""---
@@ -319,7 +387,20 @@ def generate_report(results, output_path):
     for style in comm_styles:
         report += f"- {style}\n"
 
+    if mode == "other":
+        report += """
+
+---
+
+## 🤝 How to Communicate With This Person
+
+"""
+        for item in build_interaction_guidance(results, relationship):
+            report += f"- {item}\n"
+
     report += f"""
+---
+
 ### Message Statistics
 
 | Metric | Value |
@@ -355,7 +436,7 @@ def generate_report(results, output_path):
 
 ## ⚠️ Disclaimer
 
-This analysis is based on conversational patterns and should be treated as a **tendency indicator**, not a definitive personality assessment. MBTI is a preference model — you may express different facets in different contexts. Use these insights as a starting point for self-reflection, not as a fixed label.
+This report is a **directional hypothesis**, not a diagnosis or a fixed label. Conversation context, hierarchy, culture, and the relationship itself can change how someone writes. Do not infer protected or clinical traits, and do not use the result to manipulate, exclude, hire, fire, or make other high-impact decisions. Verify important conclusions through direct communication.
 """
 
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
@@ -370,6 +451,12 @@ def main():
     parser.add_argument("--input", default="/tmp/knowme_data.json", help="Input JSON from collect.py")
     parser.add_argument("--output", default="/tmp/knowme_report.md", help="Output report path")
     parser.add_argument("--json", help="Also output raw results as JSON to this path")
+    parser.add_argument("--target", help="Override the speaker name or sender id to analyze")
+    parser.add_argument(
+        "--relationship",
+        choices=["boss", "colleague", "partner", "friend", "customer", "other"],
+        help="Override relationship context",
+    )
     args = parser.parse_args()
 
     print(f"[KnowMe] Loading data from {args.input}")
@@ -377,22 +464,47 @@ def main():
     with open(args.input, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    messages = data.get("messages", [])
+    all_messages = data.get("messages", [])
+    analysis_meta = data.get("analysis", {})
+    target = args.target or analysis_meta.get("target")
+
+    def identity(value):
+        return re.sub(r"\s+", "", str(value or "")).casefold()
+
+    if args.target:
+        target_key = identity(args.target)
+        messages = [
+            message for message in all_messages
+            if target_key in {identity(message.get("speaker")), identity(message.get("speaker_id"))}
+        ]
+    else:
+        messages = [
+            message for message in all_messages
+            if message.get("role") in ("subject", "user", "context")
+        ]
+
     if not messages:
-        print("Error: No messages found in input data")
+        print(f"Error: No messages found for analysis target {target or 'self'}")
         sys.exit(1)
 
-    print(f"[KnowMe] Analyzing {len(messages)} messages...")
+    print(f"[KnowMe] Analyzing {len(messages)} messages from {target or 'self'}...")
 
     detector = SignalDetector()
     for msg in messages:
-        detector.analyze_message(msg["content"], msg.get("role", "user"))
+        detector.analyze_message(msg["content"], "subject")
 
     results = detector.get_results()
 
     print(f"[KnowMe] MBTI Type: {results['mbti_type']} (confidence: {results['overall_confidence']})")
 
-    report = generate_report(results, args.output)
+    context = {
+        "mode": analysis_meta.get("mode", "self"),
+        "target": target or "self",
+        "relationship": args.relationship or analysis_meta.get("relationship"),
+        "source": data.get("source", "unknown"),
+        "total_conversation_messages": len(all_messages),
+    }
+    report = generate_report(results, args.output, context)
     print(f"[KnowMe] Report saved to {args.output}")
 
     if args.json:

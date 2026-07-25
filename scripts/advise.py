@@ -324,13 +324,16 @@ DEFAULT_PROFILE = {
 
 def parse_report(report_text):
     """Extract MBTI type and key metrics from the report."""
-    type_match = re.search(r'Your MBTI Type:\s*\*\*(\w{4})\*\*', report_text)
+    type_match = re.search(
+        r'(?:Your MBTI Type|Observed MBTI Tendency[^:]*):\s*\*\*([A-Z?]{4})\*\*',
+        report_text,
+    )
     mbti_type = type_match.group(1) if type_match else "XXXX"
 
     confidence_match = re.search(r'Overall confidence:\s*\*\*(\w+)\*\*', report_text)
     confidence = confidence_match.group(1) if confidence_match else "unknown"
 
-    msg_count_match = re.search(r'Based on (\d+) user messages', report_text)
+    msg_count_match = re.search(r'Based on (\d+) (?:user )?messages', report_text)
     msg_count = int(msg_count_match.group(1)) if msg_count_match else 0
 
     return mbti_type, confidence, msg_count

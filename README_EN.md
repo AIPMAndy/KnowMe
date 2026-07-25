@@ -1,263 +1,187 @@
-<div align="center">
+# KnowMe
 
-# 🧬 KnowMe
+English | [中文](./README.md)
 
-**Your AI conversations reveal your personality.**
+> **Understand yourself and read other people through real conversations.**
 
-**KnowMe analyzes your ChatGPT / Claude / DeepSeek chat history to uncover your MBTI type, personality strengths & weaknesses, and actionable life advice.**
+KnowMe extracts behavioral signals from ChatGPT, Claude, OpenClaw, Feishu, and speaker-labeled chat text. It can analyze your own long-term AI conversations or one selected person in a conversation with a manager, colleague, partner, friend, or customer.
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/github/license/AIPMAndy/KnowMe)](LICENSE)
-[![Stars](https://img.shields.io/github/stars/AIPMAndy/KnowMe?style=social)](https://github.com/AIPMAndy/KnowMe/stargazers)
-[![Issues](https://img.shields.io/github/issues/AIPMAndy/KnowMe)](https://github.com/AIPMAndy/KnowMe/issues)
+[![Star](https://img.shields.io/github/stars/AIPMAndy/KnowMe?style=social)](https://github.com/AIPMAndy/KnowMe/stargazers)
+[![License](https://img.shields.io/github/license/AIPMAndy/KnowMe)](https://github.com/AIPMAndy/KnowMe)
+[![Python](https://img.shields.io/badge/Python-3.8+-blue)](https://www.python.org/)
+[![Feishu](https://img.shields.io/badge/Feishu-direct%20chat%20import-3370ff)](https://www.feishu.cn/)
 
-**English** | [简体中文](README.md)
+![KnowMe report example](assets/demo-output.png)
 
-<br>
+## Two analysis modes
 
-<img src="assets/demo-output.png" width="680" alt="KnowMe analysis output example">
+| Mode | What is analyzed | Common use |
+|---|---|---|
+| **Know yourself** | Your actual questions, decisions, and expression in AI chats | Self-awareness, career direction, growth advice |
+| **Understand others** | Only the selected participant's messages | Communicating with a manager, colleague, partner, friend, or customer |
 
-</div>
+Traditional personality tests ask what people believe they would do. KnowMe looks at what they already do in ordinary conversations: how they structure information, ask for outcomes, balance facts and people, and seek closure or flexibility.
 
----
+## Direct Feishu conversation integration
 
-## 💡 The Idea
+KnowMe can read a Feishu group or direct-message conversation through an authenticated `lark-cli` user identity. Speaker names are preserved, and only the selected person is analyzed.
 
-Traditional MBTI tests ask what you *think* you'd do.
-
-**KnowMe analyzes what you *actually* do** — how you ask questions, how you make decisions, how you structure your thoughts, what topics consume your attention — all extracted from your real conversations with AI.
-
-> **No surveys. No self-reporting bias. Just your authentic behavior.**
-
-Think about it: you've had hundreds (maybe thousands) of conversations with ChatGPT. Those conversations contain your real thinking patterns and personality fingerprint. KnowMe extracts them.
-
----
-
-## 🆚 Why KnowMe?
-
-| Capability | Traditional MBTI Tests | AI Chat Assessments | **KnowMe** |
-|-----------|:---:|:---:|:---:|
-| Based on real behavior (not self-report) | ❌ | ❌ | ✅ |
-| Supports ChatGPT / Claude / DeepSeek data | ❌ | ❌ | ✅ |
-| 50+ behavioral signal detection | ❌ | ❌ | ✅ |
-| Bilingual signal detection (EN + CN) | ❌ | Partial | ✅ |
-| 100% local — data never leaves your device | ❌ | ❌ | ✅ |
-| Confidence scoring per dimension | ❌ | ❌ | ✅ |
-| Personalized advice for all 16 types | ✅ | Partial | ✅ |
-| Free & open source | ❌ | ❌ | ✅ |
-
-**The core difference: we don't ask you to pick answers. We let your behavior answer for you.**
-
----
-
-## 🚀 Quick Start (30 seconds)
-
-### Option 1: Command Line (Recommended)
+### Analyze a manager or colleague
 
 ```bash
-# Clone the repo
+# Find a group chat_id by name
+lark-cli im +chat-search --as user --query "Project group" --format json
+
+python3 scripts/collect.py \
+  --source feishu \
+  --chat-id oc_xxx \
+  --mode other \
+  --target "Morgan Chen" \
+  --self-name "Andy" \
+  --relationship boss \
+  --start 2026-07-01 \
+  --output data.json
+
+python3 scripts/analyze.py --input data.json --output report.md
+```
+
+For a direct message, replace `--chat-id oc_xxx` with `--user-id ou_xxx`.
+
+### Analyze an exported or copied Feishu chat
+
+```bash
+python3 scripts/collect.py \
+  --source feishu \
+  --file ./feishu-chat.txt \
+  --mode other \
+  --target "Morgan Chen" \
+  --self-name "Andy" \
+  --relationship colleague \
+  --output data.json
+```
+
+Accepted Feishu inputs:
+
+- raw JSON from `lark-cli im +chat-messages-list --format json`;
+- JSON containing a `messages` array and sender fields;
+- copied `Name HH:MM` message blocks;
+- speaker-labeled text such as `Morgan: Send the data and conclusion first.`
+
+## Analyze your own AI conversations
+
+```bash
 git clone https://github.com/AIPMAndy/KnowMe.git
 cd KnowMe
 
-# Analyze your ChatGPT data (export from Settings → Data Controls → Export Data)
-python3 scripts/collect.py --source chatgpt --file ~/Downloads/conversations.json --output data.json
+python3 scripts/collect.py \
+  --source chatgpt \
+  --file ~/Downloads/conversations.json \
+  --mode self \
+  --output data.json
+
 python3 scripts/analyze.py --input data.json --output report.md
 python3 scripts/advise.py --report report.md --output advice.md
-
-# Read your personality report!
-cat report.md
 ```
 
-### Option 2: As an OpenClaw Skill
+Example Skill requests:
 
-```bash
-# Install the skill
-openclaw skill install knowme
+- "Analyze my personality from my AI conversations."
+- "Use this Feishu chat to understand my manager's communication style."
+- "Analyze only the other person's messages in this conversation."
+- "How should I report progress to this manager?"
 
-# Then just ask your AI assistant:
-# "Analyze my personality from our conversations"
-# "What's my MBTI type?"
-# "Give me personality insights"
+## What the report contains
+
+- selected subject and `self` or `other` mode;
+- source, relationship context, subject sample size, and total messages;
+- E/I, S/N, T/F, and J/P tendencies with confidence;
+- short evidence excerpts from the selected person's own messages;
+- communication style and topic distribution;
+- practical guidance for the next interaction in `other` mode;
+- limitations and prohibited high-impact uses.
+
+## Supported sources
+
+| Source | Collection method | Subject |
+|---|---|---|
+| **Feishu group/DM** | `--source feishu --chat-id/--user-id` | Selected participant |
+| **Feishu export/text** | `--source feishu --file` | Selected participant |
+| **ChatGPT** | `--source chatgpt --file conversations.json` | Self |
+| **Claude** | `--source claude --file export.json` | Self |
+| **OpenClaw** | `--source openclaw` | Self |
+| **Text** | `--source text --file` | Self in AI conversations |
+
+## How it works
+
+```text
+conversation data
+  -> preserve speakers
+  -> select one subject
+  -> scan bilingual behavioral signals
+  -> score four MBTI dimensions
+  -> calibrate confidence by sample size
+  -> produce evidence and communication guidance
 ```
 
----
+The analyzer does not call an external AI API. Analysis runs locally. Direct Feishu collection uses the user's authorized `lark-cli` connection, then processes the retrieved messages on the local machine.
 
-## 📊 What You Get
+Recommended sample sizes:
 
-### 1. MBTI Type with Confidence Scores
+- fewer than 20 authored messages: low confidence;
+- 20-49 messages: directional only;
+- 50 or more messages across multiple days and topics: preferred.
 
-```
-Your MBTI Type: INTJ (Architect)
+## Project structure
 
-E [██████░░░░░░░░░░░░░░] I  (28% / 72%) → I ⬅️ (high confidence)
-S [░░░░░░░░████████████] N  (15% / 85%) → N ⬅️ (high confidence)
-T [████████████████░░░░] F  (78% / 22%) → T ⬅️ (high confidence)
-J [██████████████░░░░░░] P  (68% / 32%) → J ⬅️ (medium confidence)
-```
-
-Each dimension includes:
-- 📊 Percentage scores (not binary labels)
-- 🎯 Confidence level (high / medium / low)
-- 📝 Behavioral evidence (what you said that led to the score)
-
-### 2. Communication Style Analysis
-
-- Message length patterns (are you concise or thorough?)
-- Question / exclamation rates
-- Emoji usage frequency
-- Topic distribution (tech vs business vs relationships vs self-growth)
-- Collaborative vs independent tendencies
-
-### 3. Personalized Life Advice
-
-- 💪 **Your Superpowers** — Top 3 strengths
-- 🌱 **Growth Edges** — 3 areas most worth developing
-- 🎯 **Career Lens** — What roles and work styles fit you
-- 💬 **Communication Blind Spots** — Issues you might not notice
-- ❤️ **Relationship Insights** — Your social patterns
-- ⚡ **30-Day Challenge** — One specific growth experiment
-
----
-
-## 📦 Supported Data Sources
-
-| Source | Command | How to Export |
-|--------|---------|---------------|
-| **ChatGPT** | `--source chatgpt --file conversations.json` | Settings → Data Controls → Export Data |
-| **Claude** | `--source claude --file claude_export.json` | Settings → Account → Export Data |
-| **OpenClaw** | `--source openclaw` | Auto-reads from workspace memory files |
-| **Any Text** | `--source text --file ./chats/` | Any .md/.txt files with `User:/Assistant:` markers |
-
-> 💡 **Tip**: More data = better analysis. We recommend 50+ messages. Merging data from multiple platforms gives the best results.
-
----
-
-## 🔬 How It Works
-
-KnowMe does **not** call any AI API for analysis (that would be slow, expensive, and inconsistent).
-
-Instead, it uses a **signal-based scoring system**:
-
-```
-Your chat history → 50+ behavioral signal scan → 8-dimension weighted scoring → MBTI + personality profile
-```
-
-### Signal Examples
-
-| What you said | Detected signal | Dimension affected |
-|--------------|----------------|-------------------|
-| "Let me think about that..." | Needs solo processing time | I +3 |
-| "Let's brainstorm together" | Collaborative tendency | E +2 |
-| "How exactly do I do this step by step?" | Practical orientation | S +2 |
-| "What if we look at it from another angle..." | Abstract thinking | N +2 |
-| "The data shows..." | Data-driven reasoning | T +2 |
-| "How would this make the team feel?" | People-centered concern | F +2 |
-| "What's the next action item?" | Closure-driven | J +2 |
-| "It depends, let's stay flexible" | Open adaptability | P +2 |
-
-### Why this approach?
-
-- ⚡ **Fast** — Analyzes 1000+ messages in seconds
-- 🔒 **Private** — Zero API calls, data never leaves your device
-- 📊 **Explainable** — Every score has traceable behavioral evidence
-- 🔄 **Reproducible** — Same input always gives the same output
-
----
-
-## 🛠️ Advanced Usage
-
-### Merge multiple data sources
-
-```bash
-# Collect from multiple sources
-python3 scripts/collect.py --source chatgpt --file chatgpt.json --output /tmp/gpt.json
-python3 scripts/collect.py --source claude --file claude.json --output /tmp/claude.json
-
-# Merge with jq
-jq -s '{messages: (.[0].messages + .[1].messages), source: "merged", total_messages: (.[0].total_messages + .[1].total_messages)}' \
-  /tmp/gpt.json /tmp/claude.json > /tmp/merged.json
-
-# Analyze merged data
-python3 scripts/analyze.py --input /tmp/merged.json --output report.md
-```
-
-### Export raw scores
-
-```bash
-python3 scripts/analyze.py --input data.json --output report.md --json raw_scores.json
-```
-
----
-
-## 🏗️ Architecture
-
-```
-knowme/
-├── README.md                         # 中文文档
-├── README_EN.md                      # English docs
+```text
+KnowMe/
+├── SKILL.md
+├── agents/openai.yaml
 ├── scripts/
-│   ├── collect.py                    # Multi-source data collector
-│   ├── analyze.py                    # Signal-based personality analyzer
-│   └── advise.py                     # 16-type personalized advice engine
+│   ├── collect.py
+│   ├── analyze.py
+│   ├── advise.py
+│   ├── auto_collect.py
+│   └── generate_portrait.py
 ├── references/
-│   ├── mbti_signals.md               # Signal taxonomy (50+ signals)
-│   └── advice_frameworks.md          # Advice generation frameworks
-├── assets/                           # Demo images and media
-├── SKILL.md                          # OpenClaw Skill definition
-├── CONTRIBUTING.md                   # Contributing guide
-└── LICENSE                           # Apache 2.0 License
+│   ├── mbti_signals.md
+│   ├── relationship_analysis.md
+│   └── advice_frameworks.md
+└── tests/test_pipeline.py
 ```
 
----
+## Validation
 
-## 🗺️ Roadmap
+KnowMe uses only the Python standard library:
 
-- [x] Core MBTI 4-dimension analysis
-- [x] ChatGPT / Claude / OpenClaw data sources
-- [x] Personalized advice for all 16 types
-- [x] Bilingual signal detection (EN + CN)
-- [x] OpenClaw Skill integration
-- [ ] 🔜 Web UI (upload file → see report in browser)
-- [ ] 🔜 Gemini / Copilot / DeepSeek data sources
-- [ ] 🔜 Big Five personality analysis module
-- [ ] 🔜 Timeline analysis (how has your personality shifted?)
-- [ ] 🔜 Anonymous benchmarking (how do you compare to 100K people?)
-- [ ] 🔜 AI style analysis (how do different AIs change your expression?)
+```bash
+python3 -m unittest discover -s tests -v
+python3 -m compileall -q scripts
+```
 
----
+## Privacy and limits
 
-## 🤝 Contributing
+- Analyze only conversations the user is authorized to access.
+- Raw chats stay local by default.
+- Analysis of another person is a communication hypothesis, not a clinical diagnosis.
+- Do not infer protected traits, mental health, honesty, or hidden intent.
+- Do not use the output to manipulate, exclude, hire, fire, or make another high-impact decision.
+- Verify important conclusions through direct communication.
 
-PRs welcome! Especially for:
+## Roadmap
 
-- 🔌 New data source parsers (Gemini, Copilot, DeepSeek, etc.)
-- 🔍 New behavioral signal patterns
-- 🌍 Signal detection for more languages
-- 📊 Visualization and Web UI
-- 🧪 Big Five / Enneagram and other personality frameworks
+- [x] ChatGPT / Claude / OpenClaw self-analysis
+- [x] Direct Feishu group and DM collection
+- [x] Feishu JSON and copied-text import
+- [x] One-person targeting without mixing speakers
+- [x] Workplace relationship context and communication guidance
+- [x] Sample-size confidence calibration
+- [ ] Web UI
+- [ ] WeChat conversation parser
+- [ ] Big Five and timeline analysis
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+## License
 
----
+[Apache 2.0](LICENSE)
 
-## ⚠️ Disclaimer
-
-KnowMe is a self-discovery tool, not a clinical assessment. MBTI is a preference model — use these results as conversation starters for self-reflection, not as fixed labels. Analysis quality improves with more conversation data (50+ messages recommended).
-
----
-
-## 📄 License
-
-[Apache 2.0](LICENSE) — Use it, fork it, improve it, share it.
-
----
-
-<div align="center">
-
-**If KnowMe helped you understand yourself better, give it a ⭐ Star!**
-
-**Built with ❤️ by [AI酋长Andy](https://github.com/AIPMAndy)**
-
-*You've had thousands of conversations with AI. It's time those conversations worked for you.*
-
-</div>
+Built by [AI酋长Andy](https://github.com/AIPMAndy).

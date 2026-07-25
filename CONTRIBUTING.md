@@ -14,6 +14,7 @@ git clone https://github.com/<your-username>/KnowMe.git
 cd KnowMe
 
 # Run a quick test
+python3 -m unittest discover -s tests -v
 python3 scripts/collect.py --source text --file references/ --output /tmp/test_data.json
 python3 scripts/analyze.py --input /tmp/test_data.json --output /tmp/test_report.md
 python3 scripts/advise.py --report /tmp/test_report.md --output /tmp/test_advice.md
@@ -27,17 +28,19 @@ No dependencies beyond Python 3.8+ standard library. Zero setup.
 
 ### 🔌 New Data Source Parsers (High Priority)
 
-We want to support every AI platform. Each parser is a single function in `scripts/collect.py`:
+We want to support more AI and interpersonal chat platforms. Each parser in
+`scripts/collect.py` must preserve speaker identity so one selected person can
+be analyzed without mixing participants:
 
 ```python
 def collect_gemini(file_path):
     """Parse Gemini export data."""
     # Read the export file
-    # Return list of {"role": "user"|"assistant", "content": "...", "timestamp": "...", "source": "gemini"}
+    # Return list of {"role": ..., "speaker": ..., "content": ..., "timestamp": ..., "source": ...}
     pass
 ```
 
-**Wanted**: Gemini, Copilot, DeepSeek, Perplexity, Grok, Pi, Poe
+**Wanted**: WeChat, Gemini, Copilot, DeepSeek, Perplexity, Grok, Pi, Poe
 
 If you use any of these, export your data and write a parser!
 
@@ -112,7 +115,7 @@ Use the [Feature Request template](https://github.com/AIPMAndy/KnowMe/issues/new
 
 ## 📜 License
 
-By contributing, you agree that your contributions will be licensed under the [MIT License](LICENSE).
+By contributing, you agree that your contributions will be licensed under the [Apache 2.0 License](LICENSE).
 
 ---
 

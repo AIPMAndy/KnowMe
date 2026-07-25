@@ -1,0 +1,4 @@
+interface:
+  display_name: "KnowMe"
+  short_description: "Analyze yourself or others from real conversations"
+  default_prompt: "Use $knowme to analyze one person's communication patterns from a conversation."

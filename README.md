@@ -1,264 +1,222 @@
-# 🧬 KnowMe
+# KnowMe
 
 [English](./README_EN.md) | 中文
 
-> **你和 AI 的每一次对话，都在暴露你的性格。**
->
-> KnowMe 分析你的 ChatGPT / Claude / DeepSeek 聊天记录，推断 MBTI 类型、性格优劣势、职业方向，并给出可执行的成长建议。
+> **从真实对话，了解自己，也读懂别人。**
+
+KnowMe 从 ChatGPT、Claude、OpenClaw、飞书和普通聊天文本中提取行为信号，分析指定对象的 MBTI 倾向、沟通方式和决策偏好。它既能分析你与 AI 的长期对话，也能分析你与老板、同事、伴侣、朋友或客户的聊天记录。
 
 [![Star](https://img.shields.io/github/stars/AIPMAndy/KnowMe?style=social)](https://github.com/AIPMAndy/KnowMe/stargazers)
 [![License](https://img.shields.io/github/license/AIPMAndy/KnowMe)](https://github.com/AIPMAndy/KnowMe)
 [![Python](https://img.shields.io/badge/Python-3.8+-blue)](https://www.python.org/)
-[![OpenClaw](https://img.shields.io/badge/Built%20for-OpenClaw-purple)](https://github.com/openclaw/openclaw)
+[![Feishu](https://img.shields.io/badge/Feishu-direct%20chat%20import-3370ff)](https://www.feishu.cn/)
 
----
+![KnowMe 报告示例](assets/demo-output.png)
 
-## 💡 为什么是 KnowMe？
+## 两种分析模式
 
-传统 MBTI 测试问的是「你觉得自己会怎么做」。
+| 模式 | 分析什么 | 典型场景 |
+|---|---|---|
+| **了解自己** | 你在 AI 对话中真实表现出的提问、决策和表达习惯 | 自我认知、职业方向、成长建议 |
+| **读懂别人** | 指定聊天参与者自己的消息，不混入另一方语料 | 理解老板、同事、伴侣、朋友、客户 |
 
-**KnowMe 分析的是你实际怎么做的** —— 你怎么提问、怎么决策、怎么组织思路、关注什么话题。全部从你和 AI 的真实对话中提取。
+传统 MBTI 问卷分析的是“你觉得自己会怎么做”。KnowMe 分析的是人在日常对话里已经做了什么：怎么组织信息、如何要求结果、关注事实还是关系、倾向快速定案还是保留选择。
 
-> **没有问卷，没有自我美化偏差。只有你最真实的行为模式。**
+这种无意识语料能减少自我美化偏差，但它仍然只是行为倾向，不是临床诊断，也不是对一个人的最终定义。
 
-| 能力 | 传统 MBTI 测试 | AI 聊天评估 | **KnowMe** |
-|------|:---:|:---:|:---:|
-| 基于真实行为（非自我报告） | ❌ | ❌ | ✅ |
-| 支持 ChatGPT / Claude / DeepSeek | ❌ | ❌ | ✅ |
-| 50+ 行为信号检测 | ❌ | ❌ | ✅ |
-| 中英双语信号识别 | ❌ | 部分 | ✅ |
-| 100% 本地运行，数据不出设备 | ❌ | ❌ | ✅ |
-| 职业方向建议 | ❌ | ❌ | ✅ |
-| 免费开源 | ❌ | ❌ | ✅ |
+## 飞书对话直接集成
 
----
+KnowMe 不只是支持“上传一段文字”。安装并登录 `lark-cli` 后，可以直接读取你有权限访问的飞书群聊或私聊，保留发言人，再只分析指定对象。
 
-## 🚀 快速开始（30 秒）
+### 1. 找到飞书会话
 
-### 方式一：命令行（推荐）
+```bash
+# 按群名查找 chat_id
+lark-cli im +chat-search --as user --query "项目群" --format json
+```
+
+### 2. 分析老板或同事
+
+```bash
+python3 scripts/collect.py \
+  --source feishu \
+  --chat-id oc_xxx \
+  --mode other \
+  --target "张经理" \
+  --self-name "Andy" \
+  --relationship boss \
+  --start 2026-07-01 \
+  --output data.json
+
+python3 scripts/analyze.py \
+  --input data.json \
+  --output report.md
+```
+
+私聊可以直接使用对方的飞书 `open_id`：
+
+```bash
+python3 scripts/collect.py \
+  --source feishu \
+  --user-id ou_xxx \
+  --mode other \
+  --target "张经理" \
+  --relationship colleague \
+  --output data.json
+```
+
+### 3. 没有 API 接入时，导入复制文本或 JSON
+
+```bash
+python3 scripts/collect.py \
+  --source feishu \
+  --file ./feishu-chat.txt \
+  --mode other \
+  --target "张经理" \
+  --self-name "Andy" \
+  --relationship colleague \
+  --output data.json
+```
+
+支持以下格式：
+
+- `lark-cli im +chat-messages-list --format json` 的原始 JSON
+- 包含 `messages` 数组和 sender 字段的 JSON
+- 飞书复制出的 `姓名 时间` 分段文本
+- `姓名: 消息内容` 形式的聊天文本
+
+## 分析自己的 AI 对话
 
 ```bash
 git clone https://github.com/AIPMAndy/KnowMe.git
 cd KnowMe
 
-# 1. 收集数据（ChatGPT: 设置 → 数据控制 → 导出数据）
-python3 scripts/collect.py --source chatgpt --file ~/Downloads/conversations.json --output data.json
+# ChatGPT 导出
+python3 scripts/collect.py \
+  --source chatgpt \
+  --file ~/Downloads/conversations.json \
+  --mode self \
+  --output data.json
 
-# 2. 分析性格
 python3 scripts/analyze.py --input data.json --output report.md
-
-# 3. 生成建议（含职业方向）
 python3 scripts/advise.py --report report.md --output advice.md
-
-# 看报告！
-cat report.md
 ```
 
-### 方式二：作为 OpenClaw Skill
+作为 Skill 使用时，可以直接说：
 
-```bash
-openclaw skill install knowme
+- “分析一下我的性格。”
+- “根据这段飞书聊天，看看张经理是什么沟通风格。”
+- “分析我和同事的聊天，只看对方发的消息。”
+- “这个老板更适合怎么汇报？”
 
-# 然后直接问你的 AI 助手：
-# "分析一下我的性格"
-# "我的 MBTI 是什么？"
-# "给我职业方向建议"
+## 报告包含什么
+
+每份报告都会明确显示：
+
+- 正在分析谁，以及是 `self` 还是 `other` 模式
+- 数据来源、关系场景、目标消息数和总对话消息数
+- E/I、S/N、T/F、J/P 四个维度的比例和置信度
+- 来自目标对象本人消息的短证据片段
+- 沟通风格和话题分布
+- 对他人分析时，下一次沟通可直接采用的建议
+- 证据限制和禁止的高风险用途
+
+示例：
+
+```text
+Analyzed subject: 张经理
+Analysis mode: other
+Relationship context: boss
+Based on 64 messages from the subject (137 total conversation messages)
+
+Observed MBTI tendency: ESTJ
+- 先给结论、数据和截止时间
+- 明确负责人和完成标准
+- 避免只讲感受而没有决策请求
 ```
 
----
+## 支持的数据源
 
-## 📊 你会得到什么
+| 来源 | 接入方式 | 分析对象 |
+|---|---|---|
+| **飞书群聊/私聊** | `--source feishu --chat-id/--user-id` | 指定参与者 |
+| **飞书导出/复制文本** | `--source feishu --file` | 指定参与者 |
+| **ChatGPT** | `--source chatgpt --file conversations.json` | 自己 |
+| **Claude** | `--source claude --file export.json` | 自己 |
+| **OpenClaw** | `--source openclaw` | 自己 |
+| **普通文本** | `--source text --file` | 自己的 AI 对话 |
 
-### 1. MBTI 类型 + 置信度评分
+## 工作原理
 
-```
-你的 MBTI 类型: INTJ（建筑师）
-
-E [██████░░░░░░░░░░░░░░] I  (28% / 72%) → I ⬅️ 高置信度
-S [░░░░░░░░████████████] N  (15% / 85%) → N ⬅️ 高置信度
-T [████████████████░░░░] F  (78% / 22%) → T ⬅️ 高置信度
-J [██████████████░░░░░░] P  (68% / 32%) → J ⬅️ 中置信度
-```
-
-每个维度包含：百分比评分、置信度等级、行为证据（哪些对话导致了这个评分）。
-
-### 2. 沟通风格分析
-
-- 消息长度模式（你是简洁型还是详尽型？）
-- 提问 / 感叹频率
-- Emoji 使用习惯
-- 话题分布（技术 vs 商业 vs 人际 vs 自我成长）
-- 协作 vs 独立倾向
-
-### 3. 🎯 职业方向建议（NEW）
-
-基于你的 MBTI 类型和对话中的行为模式，给出个性化的职业洞察：
-
-```
-🎯 职业方向分析:
-
-  适合你的赛道:
-  - 战略咨询 / 管理咨询（发挥系统性思维）
-  - 产品架构 / 技术架构（长期规划 + 逻辑能力）
-  - 独立研究 / R&D（深度思考 + 自驱力）
-
-  你的职场超能力:
-  - 能快速看到系统全貌，找到杠杆点
-  - 擅长把模糊问题结构化
-  - 长期主义，不被短期噪音干扰
-
-  需要注意的职业陷阱:
-  - ⚠️ 容易低估「人」的因素（团队管理、向上沟通）
-  - ⚠️ 可能过度优化而错过执行窗口
-  - ⚠️ 独立偏好强，注意别变成信息孤岛
-
-  给你的行动建议:
-  - 找一个需要「说服别人」的项目练手
-  - 每周主动做一次非正式的 1:1 沟通
-  - 把你的分析能力包装成可交付的方案，而不只是洞察
+```text
+对话数据
+  -> 保留发言人
+  -> 选择一个分析对象
+  -> 扫描中英文行为信号
+  -> MBTI 四维加权
+  -> 样本量校准置信度
+  -> 证据化报告与沟通建议
 ```
 
-**16 种 MBTI 类型均有对应的职业建议框架：**
+KnowMe 的分析器不调用外部 AI API，评分过程在本地完成。直接读取飞书时，只有经过授权的 `lark-cli` 会访问飞书接口；获取后的分析仍在本机执行。
 
-| 类型组 | 适合方向 | 核心优势 |
-|--------|----------|----------|
-| NT（INTJ/INTP/ENTJ/ENTP） | 战略、架构、研发、咨询 | 系统思维 + 创新 |
-| NF（INFJ/INFP/ENFJ/ENFP） | 产品、设计、教育、内容 | 愿景驱动 + 共情 |
-| ST（ISTJ/ISTP/ESTJ/ESTP） | 运营、工程、财务、管理 | 执行力 + 可靠性 |
-| SF（ISFJ/ISFP/ESFJ/ESFP） | HR、客户成功、社区、医疗 | 人际连接 + 服务意识 |
+样本建议：
 
-### 4. 个性化成长建议
+- 少于 20 条目标消息：低置信度
+- 20-49 条：只能作为方向性判断
+- 50 条以上，且跨不同日期和话题：更适合形成稳定画像
 
-- 💪 **你的超能力** —— Top 3 优势
-- 🌱 **成长空间** —— 最值得发展的 3 个方向
-- 💬 **沟通盲区** —— 你可能没注意到的问题
-- ❤️ **关系洞察** —— 你的社交模式
-- ⚡ **30 天挑战** —— 一个具体的成长实验
+## 项目结构
 
-### 5. 🎨 生成式个性化（v2.0）
-
-**从性格到视觉 —— 生成你的专属形象**
-
-```bash
-# 生成个性化肖像
-python3 scripts/generate_portrait.py --mbti INTJ --style professional
-
-# 直接生成图像（支持 Bailian/PonyFlash 等）
-python3 scripts/generate_image.py --mbti INTJ --service bailian --output portrait.png
-```
-
-支持 professional / anime / realistic / artistic / minimalist 多种风格。
-
----
-
-## 📦 支持的数据源
-
-| 来源 | 命令 | 如何导出 |
-|------|------|----------|
-| **ChatGPT** | `--source chatgpt --file conversations.json` | 设置 → 数据控制 → 导出数据 |
-| **Claude** | `--source claude --file claude_export.json` | 设置 → 账户 → 导出数据 |
-| **OpenClaw** | `--source openclaw` | 自动读取 workspace 记忆文件 |
-| **任意文本** | `--source text --file ./chats/` | 任何含 `User:/Assistant:` 标记的 .md/.txt 文件 |
-
-> 💡 数据越多，分析越准。建议 50+ 条消息。合并多平台数据效果最佳。
-
----
-
-## 🔬 工作原理
-
-KnowMe **不调用任何 AI API** 做分析（那样慢、贵、不稳定）。
-
-它使用**基于信号的评分系统**：
-
-```
-你的聊天记录 → 50+ 行为信号扫描 → 8 维度加权评分 → MBTI + 性格画像 + 职业建议
-```
-
-| 你说了什么 | 检测到的信号 | 影响维度 |
-|-----------|-------------|---------|
-| "让我想想..." | 需要独处思考时间 | I +3 |
-| "我们一起头脑风暴吧" | 协作倾向 | E +2 |
-| "具体怎么一步步做？" | 实践导向 | S +2 |
-| "换个角度看看..." | 抽象思维 | N +2 |
-| "数据显示..." | 数据驱动决策 | T +2 |
-| "团队会怎么想？" | 以人为本 | F +2 |
-
-**为什么这样做？**
-- ⚡ 快 —— 1000+ 条消息秒级分析
-- 🔒 隐私 —— 零 API 调用，数据不出设备
-- 📊 可解释 —— 每个评分都有行为证据
-- 🔄 可复现 —— 相同输入永远相同输出
-
----
-
-## 📁 项目结构
-
-```
+```text
 KnowMe/
+├── SKILL.md
+├── agents/openai.yaml
 ├── scripts/
-│   ├── collect.py              # 多源数据收集器
-│   ├── analyze.py              # 信号评分性格分析
-│   ├── advise.py               # 16 类型个性化建议引擎（含职业方向）
-│   ├── generate_portrait.py    # MBTI → 图像 Prompt
-│   └── generate_image.py       # 直接生成图像
+│   ├── collect.py              # 多源收集、飞书接入、发言人选择
+│   ├── analyze.py              # MBTI 信号与沟通建议
+│   ├── advise.py               # 自我成长建议
+│   ├── auto_collect.py         # OpenClaw 自动收集
+│   └── generate_portrait.py    # MBTI 视觉 Prompt
 ├── references/
-│   ├── mbti_signals.md         # 信号分类（50+ 信号）
-│   └── advice_frameworks.md    # 建议生成框架（含职业建议）
-├── assets/                     # Demo 图片
-├── SKILL.md                    # OpenClaw Skill 定义
-└── README.md
+│   ├── mbti_signals.md
+│   ├── relationship_analysis.md
+│   └── advice_frameworks.md
+└── tests/test_pipeline.py
 ```
 
----
+## 验证
 
-## 🗺️ Roadmap
+项目只依赖 Python 标准库：
 
-- [x] MBTI 4 维度核心分析
-- [x] ChatGPT / Claude / OpenClaw 数据源
-- [x] 16 类型个性化建议
-- [x] 中英双语信号检测
-- [x] 职业方向建议模块
-- [x] 生成式个性化肖像（v2.0）
-- [ ] 🔜 Web UI（上传文件 → 浏览器看报告）
-- [ ] 🔜 Gemini / Copilot / DeepSeek 数据源
-- [ ] 🔜 大五人格分析模块
-- [ ] 🔜 时间线分析（你的性格如何变化？）
-- [ ] 🔜 匿名基准对比（你和 10 万人比如何？）
+```bash
+python3 -m unittest discover -s tests -v
+python3 -m compileall -q scripts
+```
 
----
+## 隐私与边界
 
-## 🤝 贡献
+- 只分析你有权访问的对话。
+- 原始聊天默认只保存在本地。
+- 他人分析是沟通假设，不是心理或临床诊断。
+- 不推断受保护属性、精神健康、诚实程度或真实意图。
+- 不用于操控、排斥、招聘、解雇或其他高影响决策。
+- 重要判断应通过直接沟通验证。
 
-欢迎 PR！特别欢迎：
+## Roadmap
 
-- 🔌 新数据源解析器（Gemini、Copilot、DeepSeek 等）
-- 🔍 新的行为信号模式
-- 🌍 更多语言的信号检测
-- 🎯 更细粒度的职业建议框架
-- 📊 可视化和 Web UI
+- [x] ChatGPT / Claude / OpenClaw 自我分析
+- [x] 飞书群聊和私聊直接读取
+- [x] 飞书 JSON、复制文本导入
+- [x] 指定对象分析，不混合聊天双方
+- [x] 职场关系场景与沟通建议
+- [x] 样本量置信度校准
+- [ ] Web UI
+- [ ] 微信聊天记录解析
+- [ ] 大五人格与时间线分析
 
-详见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+## License
 
----
+[Apache 2.0](LICENSE)
 
-## ⚠️ 免责声明
-
-KnowMe 是自我探索工具，不是临床评估。MBTI 是偏好模型 —— 把结果当作自我反思的起点，而不是固定标签。分析质量随对话数据量提升（建议 50+ 条消息）。
-
----
-
-## 📄 License
-
-[Apache 2.0](LICENSE) — 随意使用、Fork、改进、分享。
-
----
-
-<div align="center">
-
-**如果 KnowMe 帮你更了解自己，给个 ⭐ Star 吧！**
-
-**Built with ❤️ by [AI酋长Andy](https://github.com/AIPMAndy)**
-
-*你和 AI 聊了上千次。是时候让这些对话为你所用了。*
-
-</div>
+Built by [AI酋长Andy](https://github.com/AIPMAndy).
