@@ -1,0 +1,1082 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>KnowMe｜从真实对话，了解自己，也读懂别人</title>
+  <style>
+    :root {
+      --ink: #111111;
+      --paper: #f6f5f1;
+      --white: #ffffff;
+      --muted: #6c6c68;
+      --line: #d5d4ce;
+      --blue: #3370ff;
+      --green: #18a572;
+      --coral: #ff6846;
+      --yellow: #ffd84a;
+      --dark: #171820;
+      --deck-w: 1600;
+      --deck-h: 900;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #090909;
+      color: var(--ink);
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    button { font: inherit; }
+
+    .stage {
+      position: fixed;
+      inset: 0;
+      background: #090909;
+    }
+
+    .deck {
+      position: absolute;
+      width: calc(var(--deck-w) * 1px);
+      height: calc(var(--deck-h) * 1px);
+      overflow: hidden;
+      transform-origin: top left;
+      background: var(--paper);
+      box-shadow: 0 28px 90px rgba(0, 0, 0, .42);
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: none;
+      overflow: hidden;
+      padding: 76px 92px 62px;
+      background: var(--paper);
+    }
+
+    .slide.active {
+      display: block;
+      animation: slide-in .28s ease-out both;
+    }
+
+    @keyframes slide-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .slide.dark {
+      color: var(--white);
+      background: var(--dark);
+    }
+
+    .slide-number {
+      position: absolute;
+      top: 38px;
+      right: 54px;
+      color: var(--muted);
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .dark .slide-number { color: #8e91a4; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+      color: var(--blue);
+      font-size: 19px;
+      font-weight: 800;
+    }
+
+    .eyebrow::before {
+      width: 34px;
+      height: 5px;
+      content: "";
+      background: currentColor;
+    }
+
+    h1,
+    h2,
+    h3,
+    p { margin: 0; }
+
+    h1 {
+      max-width: 1220px;
+      font-size: 96px;
+      line-height: 1.03;
+      font-weight: 900;
+    }
+
+    h2 {
+      max-width: 1240px;
+      font-size: 54px;
+      line-height: 1.12;
+      font-weight: 900;
+    }
+
+    h3 {
+      font-size: 28px;
+      line-height: 1.25;
+      font-weight: 850;
+    }
+
+    .lead {
+      max-width: 1050px;
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 27px;
+      line-height: 1.6;
+    }
+
+    .dark .lead { color: #b8bac6; }
+
+    .accent-blue { color: var(--blue); }
+    .accent-green { color: var(--green); }
+    .accent-coral { color: var(--coral); }
+    .accent-yellow { color: var(--yellow); }
+
+    .footer {
+      position: absolute;
+      right: 320px;
+      bottom: 34px;
+      left: 92px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #898a85;
+      font-size: 15px;
+      line-height: 1.3;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      font-weight: 900;
+      color: inherit;
+    }
+
+    .brand-mark {
+      display: grid;
+      grid-template-columns: repeat(2, 8px);
+      gap: 4px;
+      transform: rotate(45deg);
+    }
+
+    .brand-mark i {
+      width: 8px;
+      height: 8px;
+      display: block;
+      background: var(--blue);
+    }
+
+    .brand-mark i:nth-child(2) { background: var(--green); }
+    .brand-mark i:nth-child(3) { background: var(--yellow); }
+    .brand-mark i:nth-child(4) { background: var(--coral); }
+
+    .title-slide {
+      padding-top: 96px;
+    }
+
+    .title-slide h1 {
+      margin-top: 126px;
+      max-width: 1210px;
+      font-size: 104px;
+    }
+
+    .title-slide .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      color: #d4d6e4;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .title-slide .kicker strong {
+      color: var(--white);
+      font-size: 29px;
+    }
+
+    .title-slide .hero-line {
+      position: absolute;
+      right: -90px;
+      bottom: 148px;
+      width: 650px;
+      height: 18px;
+      background: var(--blue);
+      transform: rotate(-8deg);
+    }
+
+    .title-slide .hero-block {
+      position: absolute;
+      right: 93px;
+      bottom: 86px;
+      display: flex;
+      gap: 14px;
+    }
+
+    .title-slide .hero-block span {
+      width: 62px;
+      height: 62px;
+      display: block;
+    }
+
+    .title-slide .hero-block span:nth-child(1) { background: var(--yellow); }
+    .title-slide .hero-block span:nth-child(2) { background: var(--coral); }
+    .title-slide .hero-block span:nth-child(3) { background: var(--green); }
+
+    .pain-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 34px;
+      margin-top: 46px;
+      max-width: 1160px;
+    }
+
+    .pain-strip div {
+      padding-top: 17px;
+      border-top: 4px solid #5b5e6d;
+      color: #c5c7d2;
+      font-size: 20px;
+      line-height: 1.45;
+    }
+
+    .pain-strip div:nth-child(1) { border-color: var(--blue); }
+    .pain-strip div:nth-child(2) { border-color: var(--coral); }
+    .pain-strip div:nth-child(3) { border-color: var(--green); }
+
+    .statement {
+      display: grid;
+      grid-template-columns: 1.04fr .96fr;
+      gap: 92px;
+      align-items: center;
+      height: 655px;
+    }
+
+    .statement-copy .quote {
+      font-size: 58px;
+      line-height: 1.25;
+      font-weight: 900;
+    }
+
+    .statement-copy .support {
+      max-width: 620px;
+      margin-top: 34px;
+      color: var(--muted);
+      font-size: 23px;
+      line-height: 1.65;
+    }
+
+    .answer-sheet {
+      position: relative;
+      height: 520px;
+      padding: 68px 58px;
+      background: var(--white);
+      border: 2px solid var(--ink);
+      box-shadow: 18px 18px 0 var(--yellow);
+    }
+
+    .answer-sheet::before {
+      position: absolute;
+      top: 30px;
+      left: 44px;
+      color: #a6a59e;
+      content: "PERSONALITY TEST";
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .answer-sheet .question {
+      margin: 34px 0 26px;
+      font-size: 26px;
+      line-height: 1.42;
+      font-weight: 850;
+    }
+
+    .option {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      margin: 18px 0;
+      color: #5e5e59;
+      font-size: 21px;
+    }
+
+    .option::before {
+      width: 20px;
+      height: 20px;
+      content: "";
+      border: 2px solid #9d9c95;
+      border-radius: 50%;
+    }
+
+    .option.selected { color: var(--ink); font-weight: 800; }
+    .option.selected::before { border: 7px solid var(--coral); }
+
+    .answer-sheet .stamp {
+      position: absolute;
+      right: 34px;
+      bottom: 34px;
+      padding: 12px 18px;
+      border: 3px solid var(--coral);
+      color: var(--coral);
+      font-size: 20px;
+      font-weight: 900;
+      transform: rotate(-6deg);
+    }
+
+    .contrast-label {
+      color: #9b9a93;
+      font-size: 17px;
+      font-weight: 850;
+    }
+
+    .contrast-answer {
+      margin-top: 13px;
+      font-size: 27px;
+      line-height: 1.42;
+      font-weight: 900;
+    }
+
+    .contrast-divider {
+      height: 1px;
+      margin: 28px 0;
+      background: var(--line);
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 74px;
+      margin-top: 70px;
+    }
+
+    .mode {
+      position: relative;
+      min-height: 470px;
+      padding: 42px 0 0;
+      border-top: 7px solid var(--ink);
+    }
+
+    .mode.other { border-color: var(--blue); }
+
+    .mode-index {
+      position: absolute;
+      top: 28px;
+      right: 0;
+      color: #d2d1ca;
+      font-size: 98px;
+      font-weight: 950;
+      line-height: 1;
+    }
+
+    .mode.other .mode-index { color: #c8d6ff; }
+
+    .mode h3 {
+      margin: 52px 0 22px;
+      font-size: 44px;
+    }
+
+    .mode p {
+      max-width: 535px;
+      color: var(--muted);
+      font-size: 24px;
+      line-height: 1.55;
+    }
+
+    .mode .source-line {
+      position: absolute;
+      bottom: 32px;
+      left: 0;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      color: var(--ink);
+      font-size: 19px;
+      font-weight: 850;
+    }
+
+    .mode .source-line span {
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      background: var(--white);
+    }
+
+    .feishu-layout {
+      display: grid;
+      grid-template-columns: .86fr 1.14fr;
+      gap: 84px;
+      align-items: center;
+      height: 655px;
+    }
+
+    .feishu-copy h2 { font-size: 56px; }
+
+    .feishu-copy .lead {
+      max-width: 600px;
+      font-size: 24px;
+    }
+
+    .feishu-callout {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 46px;
+      color: var(--ink);
+      font-size: 22px;
+      font-weight: 850;
+    }
+
+    .feishu-callout b {
+      padding: 11px 15px;
+      color: var(--white);
+      background: var(--blue);
+    }
+
+    .message-stream {
+      position: relative;
+      height: 590px;
+      padding: 48px 48px 46px;
+      color: var(--white);
+      background: #22242d;
+    }
+
+    .message-stream::before {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 210px;
+      height: 14px;
+      content: "";
+      background: var(--blue);
+    }
+
+    .stream-label {
+      margin-bottom: 28px;
+      color: #8e91a4;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .bubble-row {
+      display: grid;
+      grid-template-columns: 64px 1fr;
+      gap: 18px;
+      align-items: start;
+      margin: 21px 0;
+    }
+
+    .avatar {
+      width: 54px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      background: var(--yellow);
+      font-size: 19px;
+      font-weight: 900;
+    }
+
+    .bubble-row.self .avatar { background: #a4dfcb; }
+
+    .bubble {
+      max-width: 560px;
+      padding: 18px 20px;
+      color: #efeff5;
+      background: #323541;
+      font-size: 21px;
+      line-height: 1.45;
+    }
+
+    .bubble-row.target .bubble {
+      outline: 3px solid var(--blue);
+      outline-offset: 3px;
+    }
+
+    .target-flag {
+      display: inline-block;
+      margin-left: 10px;
+      padding: 3px 8px;
+      color: var(--white);
+      background: var(--blue);
+      font-size: 13px;
+      font-weight: 900;
+      vertical-align: 2px;
+    }
+
+    .stream-result {
+      position: absolute;
+      right: 46px;
+      bottom: 32px;
+      left: 46px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 22px;
+      border-top: 1px solid #4d5060;
+      color: #aeb1c1;
+      font-size: 18px;
+    }
+
+    .stream-result strong { color: #8db0ff; }
+
+    .scenario-layout {
+      display: grid;
+      grid-template-columns: .82fr 1.18fr;
+      gap: 84px;
+      margin-top: 60px;
+      align-items: stretch;
+    }
+
+    .scenario-quote {
+      padding: 48px 42px;
+      color: var(--white);
+      background: var(--ink);
+      border-left: 12px solid var(--coral);
+    }
+
+    .scenario-quote .label {
+      color: #a7a8b4;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .scenario-quote blockquote {
+      margin: 54px 0 0;
+      font-size: 35px;
+      line-height: 1.48;
+      font-weight: 850;
+    }
+
+    .scenario-quote .person {
+      margin-top: 58px;
+      color: var(--yellow);
+      font-size: 19px;
+      font-weight: 800;
+    }
+
+    .scenario-answer {
+      padding: 18px 0 0;
+    }
+
+    .scenario-answer .headline {
+      max-width: 700px;
+      font-size: 36px;
+      line-height: 1.3;
+      font-weight: 900;
+    }
+
+    .advice-list {
+      margin-top: 42px;
+      border-top: 2px solid var(--ink);
+    }
+
+    .advice-item {
+      display: grid;
+      grid-template-columns: 54px 1fr;
+      gap: 20px;
+      align-items: start;
+      padding: 24px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 24px;
+      line-height: 1.45;
+    }
+
+    .advice-item b { color: var(--blue); font-size: 26px; }
+
+    .result-facts {
+      border-top: 2px solid var(--ink);
+    }
+
+    .result-fact {
+      display: grid;
+      grid-template-columns: 116px 1fr;
+      gap: 22px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 20px;
+      line-height: 1.45;
+    }
+
+    .result-fact strong { color: var(--blue); }
+
+    .scenario-answer .advice-list { margin-top: 22px; }
+    .scenario-answer .advice-item { padding: 16px 0; font-size: 21px; }
+
+    .pipeline {
+      margin-top: 78px;
+    }
+
+    .pipeline-track {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0;
+    }
+
+    .pipeline-track::before {
+      position: absolute;
+      top: 46px;
+      right: 92px;
+      left: 92px;
+      height: 5px;
+      content: "";
+      background: var(--ink);
+    }
+
+    .pipeline-step {
+      position: relative;
+      z-index: 1;
+      padding: 0 22px;
+      text-align: center;
+    }
+
+    .pipeline-step .dot {
+      width: 96px;
+      height: 96px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 28px;
+      border: 5px solid var(--ink);
+      border-radius: 50%;
+      color: var(--ink);
+      background: var(--paper);
+      font-size: 30px;
+      font-weight: 950;
+    }
+
+    .pipeline-step:nth-child(2) .dot { border-color: var(--green); }
+    .pipeline-step:nth-child(3) .dot { border-color: var(--blue); }
+    .pipeline-step:nth-child(4) .dot { border-color: var(--coral); }
+    .pipeline-step:nth-child(5) .dot { border-color: var(--yellow); }
+
+    .pipeline-step h3 { font-size: 24px; }
+    .pipeline-step p {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    .confidence-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      margin-top: 66px;
+      border-top: 2px solid var(--ink);
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .confidence-strip div {
+      padding: 20px 26px;
+      font-size: 20px;
+      text-align: center;
+    }
+
+    .confidence-strip div + div { border-left: 1px solid var(--line); }
+    .confidence-strip strong { display: block; margin-bottom: 4px; font-size: 25px; }
+
+    .proof-layout {
+      display: grid;
+      grid-template-columns: .9fr 1.1fr;
+      gap: 88px;
+      align-items: center;
+      height: 675px;
+    }
+
+    .report-shot {
+      position: relative;
+      height: 642px;
+      overflow: hidden;
+      border: 2px solid #30313b;
+      background: #1e1f2d;
+      box-shadow: 18px 18px 0 #dce5ff;
+    }
+
+    .report-shot img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transform: translateY(-52px);
+    }
+
+    .proof-copy h2 { font-size: 60px; }
+
+    .proof-list {
+      margin-top: 42px;
+    }
+
+    .proof-item {
+      display: grid;
+      grid-template-columns: 148px 1fr;
+      gap: 26px;
+      align-items: baseline;
+      padding: 24px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .proof-item strong {
+      color: var(--blue);
+      font-size: 41px;
+      line-height: 1;
+      font-weight: 950;
+    }
+
+    .proof-item p {
+      color: var(--muted);
+      font-size: 21px;
+      line-height: 1.45;
+    }
+
+    .boundary-layout {
+      display: grid;
+      grid-template-columns: .88fr 1.12fr;
+      gap: 92px;
+      align-items: center;
+      height: 670px;
+    }
+
+    .boundary-title .big-no {
+      color: var(--coral);
+      font-size: 156px;
+      line-height: .8;
+      font-weight: 950;
+    }
+
+    .boundary-title h2 {
+      margin-top: 36px;
+      max-width: 510px;
+      font-size: 58px;
+    }
+
+    .boundary-list {
+      border-top: 3px solid var(--ink);
+    }
+
+    .boundary-item {
+      display: grid;
+      grid-template-columns: 68px 1fr;
+      gap: 22px;
+      align-items: start;
+      padding: 29px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 25px;
+      line-height: 1.45;
+    }
+
+    .boundary-item span {
+      color: var(--green);
+      font-size: 28px;
+      font-weight: 950;
+    }
+
+    .closing-slide {
+      padding-top: 96px;
+    }
+
+    .closing-slide h2 {
+      margin-top: 128px;
+      max-width: 1250px;
+      font-size: 78px;
+      line-height: 1.12;
+    }
+
+    .closing-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 38px;
+      margin-top: 84px;
+    }
+
+    .closing-action {
+      padding-top: 22px;
+      border-top: 5px solid var(--white);
+    }
+
+    .closing-action:nth-child(1) { border-color: var(--blue); }
+    .closing-action:nth-child(2) { border-color: var(--green); }
+    .closing-action:nth-child(3) { border-color: var(--coral); }
+
+    .closing-action strong {
+      display: block;
+      color: var(--white);
+      font-size: 27px;
+    }
+
+    .closing-action span {
+      display: block;
+      margin-top: 11px;
+      color: #aeb1c1;
+      font-size: 18px;
+      line-height: 1.45;
+    }
+
+    .closing-boundary {
+      margin-top: 48px;
+      color: #8f92a1;
+      font-size: 19px;
+      font-weight: 700;
+    }
+
+    .controls {
+      position: fixed;
+      right: 22px;
+      bottom: 20px;
+      z-index: 20;
+      display: flex;
+      gap: 9px;
+      align-items: center;
+      padding: 8px;
+      background: rgba(17, 17, 17, .78);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, .16);
+      opacity: 0;
+      transition: opacity .18s ease;
+    }
+
+    .controls:hover,
+    .controls:focus-within { opacity: 1; }
+
+    .controls button {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border: 0;
+      color: var(--white);
+      background: transparent;
+      cursor: pointer;
+      font-size: 27px;
+      line-height: 1;
+    }
+
+    .controls button:hover { background: rgba(255, 255, 255, .12); }
+    .controls button:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+
+    .counter {
+      min-width: 64px;
+      color: #c9cad3;
+      font-size: 15px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .progress {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 21;
+      height: 4px;
+      background: rgba(255, 255, 255, .15);
+    }
+
+    .progress span {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: var(--blue);
+      transition: width .25s ease;
+    }
+
+    .speaker-notes { display: none; }
+
+    @media print {
+      html,
+      body { overflow: visible; background: var(--white); }
+      .stage { position: static; display: block; background: var(--white); }
+      .deck { position: relative; top: auto !important; left: auto !important; width: 1600px; height: auto; box-shadow: none; transform: none !important; }
+      .slide { position: relative; display: block; page-break-after: always; }
+      .controls,
+      .progress { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <div class="deck" id="deck" aria-live="polite">
+      <section class="slide dark title-slide active" aria-label="沟通痛点">
+        <div class="kicker"><strong>KnowMe</strong><span>真实对话沟通分析</span></div>
+        <h1>明明很努力汇报，<br>老板还是说你<br><span class="accent-yellow">“没讲重点”</span>？</h1>
+        <div class="pain-strip" aria-label="常见沟通摩擦">
+          <div>同事反复返工，<br>却说“需求没讲清楚”</div>
+          <div>合作伙伴总在争同一件事，<br>谁都觉得自己说得明白</div>
+          <div>问题不一定出在能力，<br>而是双方接收信息的方式不同</div>
+        </div>
+        <div class="footer">
+          <div class="brand"><span class="brand-mark"><i></i><i></i><i></i><i></i></span>KNOWME</div>
+          <span>github.com/AIPMAndy/KnowMe</span>
+        </div>
+        <aside class="speaker-notes">讲述约 35 秒。先让听众代入汇报、返工与争执，不在本页解释产品。[Sources] 飞书讨论纪要：核心场景是理解老板、同事与合作伙伴，减少沟通摩擦。</aside>
+      </section>
+
+      <section class="slide" aria-label="根因洞察">
+        <span class="slide-number">02</span>
+        <div class="eyebrow">ROOT CAUSE</div>
+        <div class="statement">
+          <div class="statement-copy">
+            <p class="quote">先看见自己<br><span class="accent-blue">怎么表达</span>，<br>再读懂对方<br><span class="accent-coral">怎么接收</span>。</p>
+            <p class="support">了解自己是起点：你习惯怎么说、怎么判断、怎么推进。再从真实对话理解对方习惯先听结论、证据、关系，还是行动。</p>
+          </div>
+          <div class="answer-sheet" aria-label="问卷与聊天的差异">
+            <div class="contrast-label">问卷里的我</div>
+            <p class="contrast-answer">“我很理性，也很善于倾听。”</p>
+            <div class="contrast-divider"></div>
+            <div class="contrast-label">真实聊天里的我</div>
+            <p class="contrast-answer">“先给结论和数据，今天下班前把负责人、风险和完成标准定下来。”</p>
+            <div class="stamp">行为证据</div>
+          </div>
+        </div>
+        <div class="footer"><span>先了解自己，再了解他人</span><span>来源：飞书讨论纪要</span></div>
+        <aside class="speaker-notes">讲述约 20 秒。落到两句：先从长期对话看见自己，再从人际聊天读懂对方。问卷可能是理想化的自己，对话更接近真实沟通行为。[Sources] 飞书讨论纪要：传统主动填写的 MBTI 测试可能存在迎合理想人格的偏差；聊天语料可观察真实行为倾向。</aside>
+      </section>
+
+      <section class="slide" aria-label="飞书现场演示入口">
+        <span class="slide-number">03</span>
+        <div class="feishu-layout">
+          <div class="feishu-copy">
+            <div class="eyebrow">LIVE DEMO</div>
+            <h2>飞书里的真实对话，<br>就是<span class="accent-blue">分析入口</span>。</h2>
+            <p class="lead">授权一段群聊或私聊，保留每位发言人；再选中一个对象，只分析他本人发出的消息。</p>
+            <div class="feishu-callout"><b>选中：张经理</b><span>不把双方的话混在一起</span></div>
+          </div>
+          <div class="message-stream" aria-label="飞书对话目标筛选示意">
+            <div class="stream-label">飞书 · 项目协作群</div>
+            <div class="bubble-row target">
+              <div class="avatar">张</div>
+              <div class="bubble">先给我数据和结论，再讨论两个方案。<span class="target-flag">分析对象</span></div>
+            </div>
+            <div class="bubble-row self">
+              <div class="avatar">我</div>
+              <div class="bubble">收到，我下午整理后发你。</div>
+            </div>
+            <div class="bubble-row target">
+              <div class="avatar">张</div>
+              <div class="bubble">明确负责人、截止时间，以及什么算完成。<span class="target-flag">分析对象</span></div>
+            </div>
+            <div class="stream-result"><span>已保留 2 位发言人</span><strong>仅选中“张经理”的消息</strong></div>
+          </div>
+        </div>
+        <div class="footer"><span>飞书群聊 / 私聊 → 保留发言人 → 选择分析对象</span><span>来源：KnowMe README</span></div>
+        <aside class="speaker-notes">本页约 5 秒。说完“我们现场看一下”，立即切换到飞书做 80 秒演示：授权对话、保留 speaker、选择 target、生成报告。[Sources] KnowMe README：通过已授权 lark-cli 读取飞书群聊或私聊；保留 speaker 并选定 target。</aside>
+      </section>
+
+      <section class="slide" aria-label="分析结果">
+        <span class="slide-number">04</span>
+        <div class="eyebrow">DEMO OUTPUT</div>
+        <h2>不是给他贴标签，<br>而是让你知道<span class="accent-green">下一句怎么说</span>。</h2>
+        <div class="scenario-layout">
+          <div class="scenario-quote">
+            <div class="label">原句证据 · 上级沟通</div>
+            <blockquote>“先给我数据和结论，再讨论两个方案。明确负责人、截止时间，以及什么算完成。”</blockquote>
+            <div class="person">目标对象：张经理｜样本：52 条消息</div>
+          </div>
+          <div class="scenario-answer">
+            <div class="result-facts">
+              <div class="result-fact"><strong>沟通倾向</strong><span>结果导向，偏好事实、结构和闭环。</span></div>
+              <div class="result-fact"><strong>证据</strong><span>多次主动要求结论、数据、负责人和完成标准。</span></div>
+              <div class="result-fact"><strong>置信度</strong><span>中等：52 条消息，仍需跨场景继续验证。</span></div>
+            </div>
+            <div class="advice-list">
+              <div class="advice-item"><b>01</b><span><strong>开场：</strong>先给结论，再补数据与风险。</span></div>
+              <div class="advice-item"><b>02</b><span><strong>收尾：</strong>明确负责人、截止时间和决策请求。</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="footer"><span>倾向 + 证据 + 置信度 + 下一步建议</span><span>示意输出，具体结论以授权对话为准</span></div>
+        <aside class="speaker-notes">现场演示结束后回到本页，讲述约 30 秒。只强调四个输出：倾向、原句证据、置信度、下一步建议。[Sources] KnowMe README 中的报告结构与关系分析规则；本页对话为示意。</aside>
+      </section>
+
+      <section class="slide dark closing-slide" aria-label="结尾">
+        <span class="slide-number">05</span>
+        <div class="eyebrow">KNOWME</div>
+        <h2>先了解自己，<br>再读懂<span class="accent-yellow">每一个重要的人。</span></h2>
+        <div class="closing-actions">
+          <div class="closing-action"><strong>了解自己</strong><span>从长期 AI 对话看见自己的沟通与决策模式</span></div>
+          <div class="closing-action"><strong>读懂别人</strong><span>从真实人际聊天理解老板、同事与合作伙伴</span></div>
+          <div class="closing-action"><strong>从飞书开始</strong><span>把已有对话变成下一次沟通的行动建议</span></div>
+        </div>
+        <p class="closing-boundary">KnowMe 输出沟通假设，不做人格诊断；重要结论需要在真实关系中继续验证。</p>
+        <div class="footer">
+          <div class="brand"><span class="brand-mark"><i></i><i></i><i></i><i></i></span>KNOWME</div>
+          <span>github.com/AIPMAndy/KnowMe</span>
+        </div>
+        <aside class="speaker-notes">最后约 15 秒。收束为：KnowMe 先帮助人了解自己，再分析关系中的具体对象；飞书是了解他人的主要入口，目标是让下一次沟通更有效。[Sources] KnowMe 项目定位、README 与 references/relationship_analysis.md。</aside>
+      </section>
+    </div>
+  </main>
+
+  <nav class="controls" aria-label="幻灯片控制">
+    <button id="prev" type="button" title="上一页" aria-label="上一页">‹</button>
+    <span class="counter" id="counter">1 / 5</span>
+    <button id="next" type="button" title="下一页" aria-label="下一页">›</button>
+    <button id="fullscreen" type="button" title="全屏" aria-label="全屏">⛶</button>
+  </nav>
+  <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+
+  <script>
+    const deck = document.getElementById('deck');
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const counter = document.getElementById('counter');
+    const progressBar = document.getElementById('progressBar');
+    let current = 0;
+
+    function fitDeck() {
+      const scale = Math.min(window.innerWidth / 1600, window.innerHeight / 900);
+      deck.style.left = `${(window.innerWidth - 1600 * scale) / 2}px`;
+      deck.style.top = `${(window.innerHeight - 900 * scale) / 2}px`;
+      deck.style.transform = `scale(${scale})`;
+    }
+
+    function showSlide(index) {
+      current = (index + slides.length) % slides.length;
+      slides.forEach((slide, slideIndex) => {
+        slide.classList.toggle('active', slideIndex === current);
+        slide.setAttribute('aria-hidden', slideIndex === current ? 'false' : 'true');
+      });
+      counter.textContent = `${current + 1} / ${slides.length}`;
+      progressBar.style.width = `${((current + 1) / slides.length) * 100}%`;
+      history.replaceState(null, '', `#${current + 1}`);
+    }
+
+    function initialSlide() {
+      const requested = Number.parseInt(location.hash.slice(1), 10);
+      return Number.isFinite(requested) && requested >= 1 && requested <= slides.length
+        ? requested - 1
+        : 0;
+    }
+
+    document.getElementById('prev').addEventListener('click', () => showSlide(current - 1));
+    document.getElementById('next').addEventListener('click', () => showSlide(current + 1));
+    document.getElementById('fullscreen').addEventListener('click', async () => {
+      if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+      else await document.exitFullscreen();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (['ArrowRight', 'PageDown', ' '].includes(event.key)) showSlide(current + 1);
+      if (['ArrowLeft', 'PageUp'].includes(event.key)) showSlide(current - 1);
+      if (event.key === 'Home') showSlide(0);
+      if (event.key === 'End') showSlide(slides.length - 1);
+      if (event.key.toLowerCase() === 'f') document.getElementById('fullscreen').click();
+    });
+
+    window.addEventListener('resize', fitDeck);
+    window.addEventListener('hashchange', () => showSlide(initialSlide()));
+    fitDeck();
+    showSlide(initialSlide());
+  </script>
+</body>
+</html>
