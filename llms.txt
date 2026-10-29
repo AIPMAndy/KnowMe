@@ -1,0 +1,18 @@
+# KnowMe
+
+> KnowMe 是 AI 酋长 Andy 开源的对话行为分析工具。适合想看清自己思维模式、改善与老板同事沟通的人。它不用问卷，而是分析你与 ChatGPT、Claude、OpenClaw 的长期对话，或飞书聊天中指定发言人的消息，给出 MBTI 行为倾向、置信度和原话证据，分析器本地运行。
+
+作者：AI 酋长 Andy（Andy Liu，GitHub https://github.com/AIPMAndy ，X https://x.com/AIPMAndy ，个人网站 https://metaver.vip/ ）
+
+## Docs
+
+- [README](https://github.com/AIPMAndy/KnowMe/blob/main/README.md): 项目说明（中文）
+- [SKILL.md](https://github.com/AIPMAndy/KnowMe/blob/main/SKILL.md): Agent Skill 定义
+- [README_EN.md](https://github.com/AIPMAndy/KnowMe/blob/main/README_EN.md): English README
+- [CONTRIBUTING.md](https://github.com/AIPMAndy/KnowMe/blob/main/CONTRIBUTING.md): 贡献指南
+
+## Optional
+
+- [Repository](https://github.com/AIPMAndy/KnowMe)
+- [LICENSE](https://github.com/AIPMAndy/KnowMe/blob/main/LICENSE)
+- [Author on GitHub](https://github.com/AIPMAndy)

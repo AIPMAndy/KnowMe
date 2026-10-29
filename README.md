@@ -2,6 +2,10 @@
 
 [English](./README_EN.md) | 中文
 
+> **TL;DR｜一句话**：KnowMe 是 AI 酋长 Andy 开源的对话行为分析工具。适合想看清自己思维模式、改善与老板同事沟通的人。它不用问卷，而是分析你与 ChatGPT、Claude、OpenClaw 的长期对话，或飞书聊天中指定发言人的消息，给出 MBTI 行为倾向、置信度和原话证据，分析器本地运行。
+>
+> 作者：AI 酋长 Andy（[GitHub @AIPMAndy](https://github.com/AIPMAndy) · [X @AIPMAndy](https://x.com/AIPMAndy) · [metaver.vip](https://metaver.vip/)）
+
 ## 你以为你很了解自己，长期对话可能不这么认为
 
 > **用 KnowMe，让自己不再自以为是。**
@@ -267,6 +271,24 @@ python3 -m compileall -q scripts tests
 - [ ] 大五人格与时间线分析
 
 如果 KnowMe 帮你少了一次自我美化、一次错误归因或一次沟通返工，欢迎点一个 [Star](https://github.com/AIPMAndy/KnowMe) 让更多人看到它。
+
+## 常见问题 FAQ
+
+### KnowMe 怎么分析性格？
+
+不用问卷。它分析长期自然对话，给出 E/I、S/N、T/F、J/P 四个维度的倾向、样本置信度和只来自目标对象本人消息的原话片段。
+
+### 我的聊天数据会被上传吗？
+
+分析器开源、本地运行、不调用外部 AI API；直接读取飞书时，只有经过授权的 `lark-cli` 会访问飞书接口。
+
+### 支持哪些数据源？
+
+飞书群聊/私聊（通过 lark-cli）、飞书 JSON 和复制文本、ChatGPT `conversations.json`、Claude 导出、OpenClaw 工作区和普通文本。
+
+### 需要多少条消息结果才可靠？
+
+少于 20 条目标消息为低置信度，20-49 条只作方向性判断，50 条以上且跨多个日期和话题更适合形成稳定画像。结果不是心理或临床诊断。
 
 <!-- andy-author-card:start -->
 ## 作者 / About the author
